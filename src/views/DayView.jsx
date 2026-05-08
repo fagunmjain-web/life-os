@@ -29,7 +29,7 @@ export default function DayView({
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span
                   onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
-                  style={{ background: s.bg, color: s.textColor, fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 10, cursor: 'pointer' }}
+                  style={{ background: s.bg, color: s.textColor, fontSize: 14, fontWeight: 600, padding: '6px 14px', borderRadius: 10, cursor: 'pointer' }}
                 >{e.title}</span>
                 {tappedEvent === e.id && (
                   <div style={{ display: 'flex', gap: 3 }}>
@@ -42,7 +42,7 @@ export default function DayView({
           })}
           <button onClick={() => onAddEvent(currentDate)} style={{
             width: 28, height: 28, border: '1px solid #ddd', borderRadius: 8,
-            background: '#fff', cursor: 'pointer', fontSize: 16, color: '#aaa',
+            background: '#fff', cursor: 'pointer', fontSize: 19, color: '#aaa',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>+</button>
         </div>
@@ -76,7 +76,7 @@ function evActBtn(bg, color, border) {
   return {
     width: 22, height: 22, borderRadius: 5,
     border: `1px solid ${border}`, background: bg, color,
-    cursor: 'pointer', fontSize: 11,
+    cursor: 'pointer', fontSize: 13,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
   }
 }

@@ -59,11 +59,11 @@ export default function YearView({
               onClick={() => goToMonth(mi)}
               style={{ background: '#fff', borderRadius: 12, padding: 10, border: '1px solid #EBEBEB', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>{MONTH_NAMES[mi]}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>{MONTH_NAMES[mi]}</div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 3 }}>
                 {['M','T','W','T','F','S','S'].map((d,i) => (
-                  <div key={i} style={{ fontSize: 6, color: '#ccc', textAlign: 'center', fontWeight: 600 }}>{d}</div>
+                  <div key={i} style={{ fontSize: 7, color: '#ccc', textAlign: 'center', fontWeight: 600 }}>{d}</div>
                 ))}
               </div>
 
@@ -88,13 +88,13 @@ export default function YearView({
                     <div key={d} style={{ background: bg, borderRadius: br, border, minHeight: 12, padding: '1px', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
                         {overdue && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#F9A825' }} />}
-                        <span style={{ fontSize: 6, fontWeight: 600, color: range ? '#4E2100' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
+                        <span style={{ fontSize: 7, fontWeight: 600, color: range ? '#4E2100' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
                       </div>
                       {ev.map(e => {
                         const s = getEventTypeStyle(e.event_type)
                         return (
                           <div key={e.id} style={{
-                            fontSize: 4, fontWeight: 600, padding: '0 2px', borderRadius: 1,
+                            fontSize: 5, fontWeight: 600, padding: '0 2px', borderRadius: 1,
                             background: s.bg, color: s.textColor,
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
                           }}>{e.title}</div>
@@ -111,7 +111,7 @@ export default function YearView({
               </div>
 
               {lastFridayWt && (
-                <div style={{ marginTop: 5, paddingTop: 4, borderTop: '1px dashed #eee', fontSize: 7, fontWeight: 700, color: '#4A8C40' }}>
+                <div style={{ marginTop: 5, paddingTop: 4, borderTop: '1px dashed #eee', fontSize: 8, fontWeight: 700, color: '#4A8C40' }}>
                   Wt: {lastFridayWt}kg
                 </div>
               )}

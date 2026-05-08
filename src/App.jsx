@@ -15,8 +15,8 @@ const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
 const DEFAULT_EVENT_TYPES = [
   { key: 'celebration', label: 'Celebrations', color: '#E57373', bg: '#FFEBEB', textColor: '#C62828' },
-  { key: 'important', label: 'Important', color: '#5B8ED6', bg: '#E6F1FB', textColor: '#185FA5' },
-  { key: 'travel', label: 'Travel', color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
+  { key: 'important',   label: 'Important',    color: '#5B8ED6', bg: '#E6F1FB', textColor: '#185FA5' },
+  { key: 'travel',      label: 'Travel',       color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
 ]
 
 const ET_PRESET_COLORS = [
@@ -44,7 +44,6 @@ export default function App() {
   const [eventModal, setEventModal] = useState(null)
   const [hamOpen, setHamOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
-  // Hamburger editing state
   const [editingSection, setEditingSection] = useState(null)
   const [editingSectionName, setEditingSectionName] = useState('')
   const [editingEventType, setEditingEventType] = useState(null)
@@ -72,13 +71,20 @@ export default function App() {
     setLoading(false)
   }
 
+  // Bug fix: use String() coercion so UUID vs number mismatches never break comparison
   async function toggleCompletion(taskId, dateStr) {
-    const existing = completions.find(c => c.task_id === taskId && c.completed_date === dateStr)
+    const existing = completions.find(
+      c => String(c.task_id) === String(taskId) && c.completed_date === dateStr
+    )
     if (existing) {
       await supabase.from('task_completions').delete().eq('id', existing.id)
       setCompletions(prev => prev.filter(c => c.id !== existing.id))
     } else {
-      const { data } = await supabase.from('task_completions').insert({ task_id: taskId, completed_date: dateStr }).select().single()
+      const { data } = await supabase
+        .from('task_completions')
+        .insert({ task_id: taskId, completed_date: dateStr })
+        .select()
+        .single()
       if (data) setCompletions(prev => [...prev, data])
     }
   }
@@ -89,7 +95,11 @@ export default function App() {
       await supabase.from('weight_entries').update({ actual_weight: weight }).eq('id', existing.id)
       setWeightEntries(prev => prev.map(w => w.entry_date === dateStr ? { ...w, actual_weight: weight } : w))
     } else {
-      const { data } = await supabase.from('weight_entries').insert({ entry_date: dateStr, actual_weight: weight }).select().single()
+      const { data } = await supabase
+        .from('weight_entries')
+        .insert({ entry_date: dateStr, actual_weight: weight })
+        .select()
+        .single()
       if (data) setWeightEntries(prev => [...prev, data])
     }
   }
@@ -147,13 +157,20 @@ export default function App() {
     const dateStr = toDateStr(date)
     const dayName = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()]
     return tasks.filter(t => {
-      if (t.is_recurring) return t.days_of_week?.includes(dayName)
+      if (t.is_recurring) {
+        const dow = t.days_of_week
+        if (!dow || !Array.isArray(dow) || dow.length === 0) return false
+        return dow.includes(dayName)
+      }
       return t.specific_date === dateStr
     })
   }
 
+  // Bug fix: String() coercion for UUID/integer safety
   function isCompleted(taskId, dateStr) {
-    return completions.some(c => c.task_id === taskId && c.completed_date === dateStr)
+    return completions.some(
+      c => String(c.task_id) === String(taskId) && c.completed_date === dateStr
+    )
   }
 
   function getEventsForDate(date) {
@@ -165,21 +182,28 @@ export default function App() {
   }
 
   function getWeightTarget(dateStr) { return weightTargets.find(w => w.target_date === dateStr) }
-  function getWeightEntry(dateStr) { return weightEntries.find(w => w.entry_date === dateStr) }
+  function getWeightEntry(dateStr)  { return weightEntries.find(w => w.entry_date === dateStr) }
 
   function hasOverdue(date) {
     const dateStr = toDateStr(date)
-    const todayStr = toDateStr(new Date())
-    if (dateStr >= todayStr) return false
+    if (dateStr >= toDateStr(new Date())) return false
     return getTasksForDate(date).some(t => !isCompleted(t.id, dateStr))
+  }
+
+  // Past day where every task is complete (or there are no tasks) → grey it out
+  function isFullyDone(date) {
+    const dateStr = toDateStr(date)
+    if (dateStr >= toDateStr(new Date())) return false
+    const dayTasks = getTasksForDate(date)
+    return dayTasks.every(t => isCompleted(t.id, dateStr))
   }
 
   function navigate(dir) {
     setCurrentDate(d => {
-      if (activeView === 'Day') return addDays(d, dir)
-      if (activeView === 'Week') return addDays(d, dir * 7)
+      if (activeView === 'Day')   return addDays(d, dir)
+      if (activeView === 'Week')  return addDays(d, dir * 7)
       if (activeView === 'Month') { const n = new Date(d); n.setMonth(n.getMonth() + dir); return n }
-      if (activeView === 'Year') { const n = new Date(d); n.setFullYear(n.getFullYear() + dir); return n }
+      if (activeView === 'Year')  { const n = new Date(d); n.setFullYear(n.getFullYear() + dir); return n }
       return d
     })
   }
@@ -192,9 +216,9 @@ export default function App() {
     touchStartX.current = null
   }
 
-  const dateStr = toDateStr(currentDate)
+  const dateStr    = toDateStr(currentDate)
   const weightTarget = getWeightTarget(dateStr)
-  const weightEntry = getWeightEntry(dateStr)
+  const weightEntry  = getWeightEntry(dateStr)
   const showWeight = activeView === 'Day' && isFriday(currentDate) && weightTarget
 
   function getHeaderTitle() {
@@ -202,9 +226,9 @@ export default function App() {
       const d = currentDate
       return `${String(d.getDate()).padStart(2,'0')} ${MONTH_SHORT[d.getMonth()]}  ${DAY_NAMES[d.getDay()]}`
     }
-    if (activeView === 'Week') return `${MONTH_SHORT[currentDate.getMonth()]} ${currentDate.getFullYear()}`
+    if (activeView === 'Week')  return `${MONTH_SHORT[currentDate.getMonth()]} ${currentDate.getFullYear()}`
     if (activeView === 'Month') return `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`
-    if (activeView === 'Year') return `${currentDate.getFullYear()}`
+    if (activeView === 'Year')  return `${currentDate.getFullYear()}`
     return ''
   }
 
@@ -212,9 +236,8 @@ export default function App() {
     currentDate, setCurrentDate, tasks, completions, events,
     weightTargets, weightEntries, sections,
     getTasksForDate, isCompleted, getEventsForDate,
-    getWeightTarget, getWeightEntry, hasOverdue,
+    getWeightTarget, getWeightEntry, hasOverdue, isFullyDone,
     toggleCompletion, saveWeight,
-    // Confirm-wrapped deletes
     deleteTask: (id) => {
       const t = tasks.find(t => t.id === id)
       setDeleteConfirm({ type: 'task', id, name: t?.title || 'this task' })
@@ -223,43 +246,36 @@ export default function App() {
       const e = events.find(ev => ev.id === id)
       setDeleteConfirm({ type: 'event', id, name: e?.title || 'this event' })
     },
-    onEditTask: (task) => setTaskModal({ task }),
-    onAddTask: (sectionKey, date) => setTaskModal({ defaultSection: sectionKey, defaultDate: date }),
-    onAddEvent: (date) => setEventModal({ date }),
+    onEditTask:  (task) => setTaskModal({ task }),
+    onAddTask:   (sectionKey, date) => setTaskModal({ defaultSection: sectionKey, defaultDate: date }),
+    onAddEvent:  (date) => setEventModal({ date }),
     onEditEvent: (event) => setEventModal({ event }),
-    navigate,
-    activeView,
-    setActiveView,
-    getEventTypeStyle,
+    navigate, activeView, setActiveView, getEventTypeStyle,
   }
 
   const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
 
   function renameSection(key, name) {
-    setSections(prev => prev.map(s => s.key === key ? { ...s, label: name.trim() } : s))
+    if (name.trim()) setSections(prev => prev.map(s => s.key === key ? { ...s, label: name.trim() } : s))
     setEditingSection(null)
   }
-
   function renameEventType(key, name) {
-    setEventTypes(prev => prev.map(et => et.key === key ? { ...et, label: name.trim() } : et))
+    if (name.trim()) setEventTypes(prev => prev.map(et => et.key === key ? { ...et, label: name.trim() } : et))
     setEditingEventType(null)
   }
-
   function addEventType() {
     if (!newEventType?.name?.trim()) return
     const colors = ET_PRESET_COLORS[newEventType.colorIdx] || ET_PRESET_COLORS[0]
     setEventTypes(prev => [...prev, {
       key: newEventType.name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now(),
-      label: newEventType.name.trim(),
-      ...colors,
+      label: newEventType.name.trim(), ...colors,
     }])
     setNewEventType(null)
   }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f7f7f5', overflowX: 'hidden', maxWidth: '100vw' }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
     >
       {/* HAMBURGER OVERLAY */}
       {hamOpen && (
@@ -270,74 +286,61 @@ export default function App() {
             borderRadius: 16, padding: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.15)', maxHeight: '85vh', overflowY: 'auto',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#2C2C2C' }}>Manage sections</span>
-              <span onClick={() => setHamOpen(false)} style={{ cursor: 'pointer', fontSize: 20, color: '#aaa', lineHeight: 1 }}>×</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C' }}>Manage sections</span>
+              <span onClick={() => setHamOpen(false)} style={{ cursor: 'pointer', fontSize: 22, color: '#aaa', lineHeight: 1 }}>×</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              {/* Task sections */}
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Task sections</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Task sections</div>
                 {sections.map(s => (
-                  <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: 12, fontWeight: 600 }}>
+                  <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: 13, fontWeight: 600 }}>
                     {editingSection === s.key ? (
-                      <input
-                        autoFocus value={editingSectionName}
+                      <input autoFocus value={editingSectionName}
                         onChange={e => setEditingSectionName(e.target.value)}
                         onBlur={() => renameSection(s.key, editingSectionName)}
                         onKeyDown={e => e.key === 'Enter' && renameSection(s.key, editingSectionName)}
-                        style={{ fontSize: 12, color: s.cb, border: 'none', borderBottom: `1px solid ${s.cb}`, background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, width: '100%', marginRight: 4 }}
+                        style={{ fontSize: 13, color: s.cb, border: 'none', borderBottom: `1px solid ${s.cb}`, background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, width: '100%', marginRight: 4 }}
                       />
                     ) : (
                       <span style={{ color: s.cb, flex: 1 }}>{s.label}</span>
                     )}
                     <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                      <span onClick={() => { setEditingSection(s.key); setEditingSectionName(s.label) }}
-                        style={{ color: '#aaa', cursor: 'pointer', fontSize: 12, padding: '2px 2px' }}>✎</span>
-                      <span onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })}
-                        style={{ color: '#C62828', cursor: 'pointer', fontSize: 14, padding: '2px 2px' }}>×</span>
+                      <span onClick={() => { setEditingSection(s.key); setEditingSectionName(s.label) }} style={{ color: '#aaa', cursor: 'pointer', fontSize: 13 }}>✎</span>
+                      <span onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })} style={{ color: '#C62828', cursor: 'pointer', fontSize: 15 }}>×</span>
                     </div>
                   </div>
                 ))}
                 <div onClick={() => { setHamOpen(false); setSectionModal(true) }}
-                  style={{ fontSize: 11, color: '#aaa', cursor: 'pointer', padding: '5px 0', marginTop: 6, borderTop: '1px dashed #eee' }}>
+                  style={{ fontSize: 12, color: '#aaa', cursor: 'pointer', padding: '5px 0', marginTop: 6, borderTop: '1px dashed #eee' }}>
                   + Add new section
                 </div>
               </div>
-
-              {/* Event types */}
               <div>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Event types</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Event types</div>
                 {eventTypes.map(et => (
-                  <div key={et.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: 12, fontWeight: 600 }}>
+                  <div key={et.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: 13, fontWeight: 600 }}>
                     {editingEventType === et.key ? (
-                      <input
-                        autoFocus value={editingEventTypeName}
+                      <input autoFocus value={editingEventTypeName}
                         onChange={e => setEditingEventTypeName(e.target.value)}
                         onBlur={() => renameEventType(et.key, editingEventTypeName)}
                         onKeyDown={e => e.key === 'Enter' && renameEventType(et.key, editingEventTypeName)}
-                        style={{ fontSize: 12, color: et.textColor, border: 'none', borderBottom: `1px solid ${et.color}`, background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, width: '100%', marginRight: 4 }}
+                        style={{ fontSize: 13, color: et.textColor, border: 'none', borderBottom: `1px solid ${et.color}`, background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, width: '100%', marginRight: 4 }}
                       />
                     ) : (
                       <span style={{ color: et.textColor, flex: 1 }}>{et.label}</span>
                     )}
                     <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                      <span onClick={() => { setEditingEventType(et.key); setEditingEventTypeName(et.label) }}
-                        style={{ color: '#aaa', cursor: 'pointer', fontSize: 12, padding: '2px 2px' }}>✎</span>
-                      <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })}
-                        style={{ color: '#C62828', cursor: 'pointer', fontSize: 14, padding: '2px 2px' }}>×</span>
+                      <span onClick={() => { setEditingEventType(et.key); setEditingEventTypeName(et.label) }} style={{ color: '#aaa', cursor: 'pointer', fontSize: 13 }}>✎</span>
+                      <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })} style={{ color: '#C62828', cursor: 'pointer', fontSize: 15 }}>×</span>
                     </div>
                   </div>
                 ))}
-
-                {/* New event type form */}
                 {newEventType ? (
-                  <div style={{ marginTop: 8, padding: '8px', background: '#f9f9f9', borderRadius: 8 }}>
-                    <input
-                      autoFocus placeholder="Type name"
-                      value={newEventType.name}
+                  <div style={{ marginTop: 8, padding: 8, background: '#f9f9f9', borderRadius: 8 }}>
+                    <input autoFocus placeholder="Type name" value={newEventType.name}
                       onChange={e => setNewEventType(prev => ({ ...prev, name: e.target.value }))}
                       onKeyDown={e => e.key === 'Enter' && addEventType()}
-                      style={{ width: '100%', fontSize: 11, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', marginBottom: 6 }}
+                      style={{ width: '100%', fontSize: 12, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', marginBottom: 6 }}
                     />
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
                       {ET_PRESET_COLORS.map((c, i) => (
@@ -347,13 +350,13 @@ export default function App() {
                       ))}
                     </div>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <button onClick={addEventType} style={{ fontSize: 10, padding: '3px 8px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
-                      <button onClick={() => setNewEventType(null)} style={{ fontSize: 10, padding: '3px 8px', background: '#f0f0f0', color: '#888', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+                      <button onClick={addEventType} style={{ fontSize: 11, padding: '3px 8px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
+                      <button onClick={() => setNewEventType(null)} style={{ fontSize: 11, padding: '3px 8px', background: '#f0f0f0', color: '#888', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                     </div>
                   </div>
                 ) : (
                   <div onClick={() => setNewEventType({ name: '', colorIdx: 0 })}
-                    style={{ fontSize: 11, color: '#aaa', cursor: 'pointer', padding: '5px 0', marginTop: 6, borderTop: '1px dashed #eee' }}>
+                    style={{ fontSize: 12, color: '#aaa', cursor: 'pointer', padding: '5px 0', marginTop: 6, borderTop: '1px dashed #eee' }}>
                     + Add new event type
                   </div>
                 )}
@@ -369,20 +372,15 @@ export default function App() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background: '#fff', borderRadius: 16, padding: 24, width: 280, textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>Are you sure?</div>
-            <div style={{ fontSize: 12, color: '#888', marginBottom: 20 }}>
-              Delete "{deleteConfirm.name}"?
-            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>Are you sure?</div>
+            <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>Delete "{deleteConfirm.name}"?</div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
               <button onClick={() => setDeleteConfirm(null)} style={cancelBtn}>No</button>
               <button onClick={() => {
-                if (deleteConfirm.type === 'section') deleteSection(deleteConfirm.key)
-                if (deleteConfirm.type === 'event') { deleteEvent(deleteConfirm.id); setDeleteConfirm(null) }
-                if (deleteConfirm.type === 'task') { deleteTask(deleteConfirm.id); setDeleteConfirm(null) }
-                if (deleteConfirm.type === 'eventType') {
-                  setEventTypes(prev => prev.filter(et => et.key !== deleteConfirm.key))
-                  setDeleteConfirm(null)
-                }
+                if (deleteConfirm.type === 'section')   deleteSection(deleteConfirm.key)
+                if (deleteConfirm.type === 'event')     { deleteEvent(deleteConfirm.id); setDeleteConfirm(null) }
+                if (deleteConfirm.type === 'task')      { deleteTask(deleteConfirm.id); setDeleteConfirm(null) }
+                if (deleteConfirm.type === 'eventType') { setEventTypes(prev => prev.filter(et => et.key !== deleteConfirm.key)); setDeleteConfirm(null) }
               }} style={{ ...cancelBtn, background: '#C62828', color: '#fff' }}>Yes, delete</button>
             </div>
           </div>
@@ -390,29 +388,29 @@ export default function App() {
       )}
 
       {/* STICKY HEADER */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '10px 20px 8px' }}>
-        {/* Row 1 — grid for true centering */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '10px 16px 8px' }}>
+        {/* Row 1 — 3-column grid for perfect centering */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: showWeight && isMobile ? 4 : 8 }}>
-          {/* Left */}
-          <div>
-            <button onClick={() => setHamOpen(true)} style={{ width: 28, height: 28, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4, padding: 2 }}>
-              <span style={{ display: 'block', height: 1.5, background: '#555', borderRadius: 1, width: 18 }}></span>
-              <span style={{ display: 'block', height: 1.5, background: '#555', borderRadius: 1, width: 18 }}></span>
-              <span style={{ display: 'block', height: 1.5, background: '#555', borderRadius: 1, width: 18 }}></span>
+          {/* Left: hamburger */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button onClick={() => setHamOpen(true)} style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, padding: 4 }}>
+              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
             </button>
           </div>
-          {/* Center — always perfectly centred */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer', padding: '0 6px', lineHeight: 1 }}>‹</button>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#2C2C2C', minWidth: 120, textAlign: 'center' }}>{getHeaderTitle()}</div>
-            <button onClick={() => navigate(1)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer', padding: '0 6px', lineHeight: 1 }}>›</button>
+          {/* Center: nav arrows + title — always perfectly centred */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>‹</button>
+            <div style={{ fontSize: 19, fontWeight: 600, color: '#2C2C2C', minWidth: 130, textAlign: 'center' }}>{getHeaderTitle()}</div>
+            <button onClick={() => navigate(1)}  style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>›</button>
           </div>
-          {/* Right */}
+          {/* Right: year-view shortcut buttons or weight widget */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
             {activeView === 'Year' && (
               <>
                 <button onClick={() => setTaskModal({ defaultSection: null })} style={yearBtn}>+ Task</button>
-                <button onClick={() => setEventModal({ date: new Date() })} style={yearBtn}>+ Event</button>
+                <button onClick={() => setEventModal({ date: new Date() })}    style={yearBtn}>+ Event</button>
               </>
             )}
             {showWeight && !isMobile && (
@@ -428,8 +426,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Row 2 — view nav */}
-        <div style={{ display: 'flex', gap: 3, background: '#ddd', borderRadius: 10, padding: 3 }}>
+        {/* Row 2 — individual pill tabs (no shared bar) */}
+        <div style={{ display: 'flex', gap: 5 }}>
           {VIEWS.map(v => {
             const isActive = activeView === v && v !== 'Today'
             return (
@@ -439,12 +437,11 @@ export default function App() {
                   else setActiveView(v)
                 }}
                 style={{
-                  flex: 1, padding: '7px 0', fontSize: 12, fontWeight: 600,
+                  flex: 1, padding: '8px 0', fontSize: 13, fontWeight: 600,
                   border: 'none',
-                  background: isActive ? '#2C2C2C' : 'transparent',
-                  borderRadius: 7, cursor: 'pointer',
-                  color: isActive ? '#fff' : '#888',
-                  boxShadow: isActive ? '0 2px 6px rgba(0,0,0,0.2)' : 'none',
+                  background: isActive ? '#2C2C2C' : '#e8e8e8',
+                  borderRadius: 10, cursor: 'pointer',
+                  color: isActive ? '#fff' : '#777',
                   transition: 'all .15s', fontFamily: 'inherit',
                 }}
               >{v}</button>
@@ -454,9 +451,9 @@ export default function App() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 14 }}>Loading your life...</div>
+        <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 15 }}>Loading your life...</div>
       ) : (
-        <div style={{ width: '100%', padding: '8px 20px 32px' }}>
+        <div style={{ width: '100%', padding: '8px 16px 32px' }}>
           {activeView === 'Day'   && <DayView   {...sharedProps} />}
           {activeView === 'Week'  && <WeekView  {...sharedProps} />}
           {activeView === 'Month' && <MonthView {...sharedProps} />}
@@ -469,17 +466,12 @@ export default function App() {
           defaultDate={taskModal.defaultDate}
           sections={sections} onSave={saveTask} onClose={() => setTaskModal(null)} />
       )}
-      {sectionModal && (
-        <SectionModal onSave={saveSection} onClose={() => setSectionModal(false)} />
-      )}
+      {sectionModal && <SectionModal onSave={saveSection} onClose={() => setSectionModal(false)} />}
       {eventModal && (
         <EventModal
-          date={eventModal.date}
-          event={eventModal.event}
+          date={eventModal.date} event={eventModal.event}
           eventTypes={eventTypes}
-          onSave={saveEvent}
-          onUpdate={updateEvent}
-          onClose={() => setEventModal(null)} />
+          onSave={saveEvent} onUpdate={updateEvent} onClose={() => setEventModal(null)} />
       )}
     </div>
   )
@@ -487,40 +479,27 @@ export default function App() {
 
 function WeightInline({ target, entry, dateStr, saveWeight }) {
   const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(entry?.actual_weight || '')
-
-  useEffect(() => {
-    setVal(entry?.actual_weight || '')
-  }, [entry?.actual_weight])
-
+  const [val, setVal] = useState(entry?.actual_weight ?? '')
+  useEffect(() => { setVal(entry?.actual_weight ?? '') }, [entry?.actual_weight])
   function handleBlur() {
     setEditing(false)
     if (val !== '' && !isNaN(val)) saveWeight(dateStr, parseFloat(val))
   }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: '#4A8C40', whiteSpace: 'nowrap' }}>Wt: {target.target_weight}kg</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: '#4A8C40', whiteSpace: 'nowrap' }}>Wt: {target.target_weight}kg</span>
       {editing ? (
-        <input autoFocus type="number" step="0.1" value={val}
-          onChange={e => setVal(e.target.value)} onBlur={handleBlur}
-          style={{ fontSize: 12, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 44, fontFamily: 'inherit' }}
+        <input autoFocus type="number" step="0.1" value={val} onChange={e => setVal(e.target.value)} onBlur={handleBlur}
+          style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 44, fontFamily: 'inherit' }}
         />
       ) : (
-        <span onClick={() => setEditing(true)} style={{ fontSize: 12, fontWeight: 700, color: '#2C2C2C', borderBottom: '1.5px solid #aaa', minWidth: 32, cursor: 'text', display: 'inline-block' }}>
-          {entry?.actual_weight || ''}
+        <span onClick={() => setEditing(true)} style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', borderBottom: '1.5px solid #aaa', minWidth: 32, cursor: 'text', display: 'inline-block' }}>
+          {entry?.actual_weight ?? ''}
         </span>
       )}
     </div>
   )
 }
 
-const cancelBtn = {
-  padding: '8px 16px', background: '#f5f5f5', color: '#888',
-  border: 'none', borderRadius: 8, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
-}
-
-const yearBtn = {
-  padding: '5px 10px', fontSize: 11, fontWeight: 600,
-  border: '1px solid #ddd', background: '#fff', color: '#2C2C2C',
-  borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit',
-}
+const cancelBtn = { padding: '9px 18px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }
+const yearBtn   = { padding: '6px 11px', fontSize: 12, fontWeight: 600, border: 'none', background: '#e8e8e8', color: '#2C2C2C', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }

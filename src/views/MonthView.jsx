@@ -6,7 +6,7 @@ const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 export default function MonthView({
   currentDate, setCurrentDate, setActiveView,
   events, weightTargets, weightEntries, sections,
-  getTasksForDate, isCompleted, hasOverdue,
+  getTasksForDate, isCompleted, hasOverdue, isFullyDone,
   getWeightTarget, getWeightEntry,
   saveWeight, onAddEvent, onAddTask, getEventTypeStyle,
 }) {
@@ -76,7 +76,7 @@ export default function MonthView({
         {/* Day-of-week headers */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4, flexShrink: 0 }}>
           {DOW.map(d => (
-            <div key={d} style={{ fontSize: 11, fontWeight: 600, color: d === 'Fri' ? '#4A8C40' : '#aaa', textAlign: 'center', padding: '4px 0' }}>{d}</div>
+            <div key={d} style={{ fontSize: 13, fontWeight: 600, color: d === 'Fri' ? '#4A8C40' : '#aaa', textAlign: 'center', padding: '4px 0' }}>{d}</div>
           ))}
         </div>
 
@@ -92,6 +92,7 @@ export default function MonthView({
             const dayEvents = getDayEvents(day)
             const today = isToday(new Date(year, month, day))
             const overdue = hasOverdue(new Date(year, month, day))
+            const fullyDone = isFullyDone ? isFullyDone(new Date(year, month, day)) : false
             const wTarget = getWeightTarget(ds)
             const wEntry = getWeightEntry(ds)
             const showWt = fridays.includes(day)
@@ -104,7 +105,12 @@ export default function MonthView({
             if (today) border = '1.5px solid #aaa'
 
             return (
-              <div key={day} style={{ background: bg, borderRadius: br, padding: '4px 3px', border, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
+              <div key={day} style={{
+                background: bg, borderRadius: br, padding: '4px 3px', border,
+                display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden',
+                filter: fullyDone ? 'grayscale(1)' : 'none',
+                opacity: fullyDone ? 0.55 : 1,
+              }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {overdue && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9A825' }} />}
@@ -115,7 +121,7 @@ export default function MonthView({
                   </div>
                   <span
                     onClick={() => goToDay(day)}
-                    style={{ fontSize: 11, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer' }}
+                    style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer' }}
                   >{day}</span>
                 </div>
 
@@ -123,21 +129,20 @@ export default function MonthView({
                   const s = getEventTypeStyle(e.event_type)
                   return (
                     <div key={e.id} style={{
-                      fontSize: 8, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
+                      fontSize: 10, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
                       background: s.bg, color: s.textColor,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{e.title}</div>
                   )
                 })}
 
-                {/* Task dots — use light (sb) color */}
+                {/* Task dots — solid fill, no border */}
                 {dots.length > 0 && (
                   <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     {dots.map((dot, i) => (
                       <div key={i} style={{
                         width: 14, height: 14, borderRadius: '50%',
                         background: dot.lightColor,
-                        border: `1px solid ${dot.darkColor}`,
                         display: 'flex', alignItems: 'center',
                         justifyContent: 'center', fontSize: 7, fontWeight: 700, color: dot.darkColor,
                       }}>{dot.count}</div>
@@ -147,17 +152,17 @@ export default function MonthView({
 
                 {showWt && wTarget && (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 'auto' }} onClick={e => e.stopPropagation()}>
-                    <span style={{ fontSize: 7, fontWeight: 700, color: '#4A8C40' }}>Wt:{wTarget.target_weight}kg</span>
+                    <span style={{ fontSize: 8, fontWeight: 700, color: '#4A8C40' }}>Wt:{wTarget.target_weight}kg</span>
                     {editingWeight === ds ? (
                       <input autoFocus type="number" step="0.1" value={weightVal}
                         onChange={e => setWeightVal(e.target.value)}
                         onBlur={() => handleWeightBlur(ds)}
-                        style={{ fontSize: 7, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 26, fontFamily: 'inherit' }}
+                        style={{ fontSize: 8, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 26, fontFamily: 'inherit' }}
                       />
                     ) : (
                       <span
                         onClick={() => { setEditingWeight(ds); setWeightVal(wEntry?.actual_weight ?? '') }}
-                        style={{ fontSize: 7, fontWeight: 700, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 16, cursor: 'text', display: 'inline-block' }}
+                        style={{ fontSize: 8, fontWeight: 700, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 16, cursor: 'text', display: 'inline-block' }}
                       >{wEntry?.actual_weight ?? ''}</span>
                     )}
                   </div>

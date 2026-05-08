@@ -14,8 +14,8 @@ export default function Section({ sec, tasks, dateStr, isCompleted, toggleComple
   const [hoveredTask, setHoveredTask] = useState(null)
 
   const pad = compact ? '6px 8px' : '9px 12px'
-  const fontSize = compact ? 10 : 13
-  const taskFontSize = compact ? 10 : 13
+  const fontSize = compact ? 12 : 16
+  const taskFontSize = compact ? 12 : 16
 
   return (
     <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: compact ? 4 : 6 }}>
@@ -53,7 +53,7 @@ export default function Section({ sec, tasks, dateStr, isCompleted, toggleComple
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>{task.title}</span>
               {task.time_of_day && (
-                <span style={{ fontSize: 9, color: sec.cb, opacity: .7, flexShrink: 0 }}>{task.time_of_day}</span>
+                <span style={{ fontSize: 11, color: sec.cb, opacity: .7, flexShrink: 0 }}>{task.time_of_day}</span>
               )}
               {hoveredTask === task.id && (
                 <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
@@ -75,7 +75,7 @@ export default function Section({ sec, tasks, dateStr, isCompleted, toggleComple
           {onAddTask && (
             <div onClick={() => onAddTask(sec.key, dateStr)} style={{
               display: 'flex', alignItems: 'center', gap: 5, padding: '6px 0 2px',
-              fontSize: compact ? 10 : 11, color: sec.cb, cursor: 'pointer', opacity: .7,
+              fontSize: compact ? 12 : 13, color: sec.cb, cursor: 'pointer', opacity: .7,
             }}>
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 2v8M2 6h8"/>

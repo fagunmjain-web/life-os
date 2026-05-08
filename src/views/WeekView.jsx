@@ -6,7 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile.js'
 export default function WeekView({
   currentDate, setCurrentDate, setActiveView,
   getTasksForDate, isCompleted, getEventsForDate,
-  getWeightTarget, getWeightEntry, hasOverdue,
+  getWeightTarget, getWeightEntry, hasOverdue, isFullyDone,
   toggleCompletion, saveWeight, deleteTask, deleteEvent,
   onEditTask, onAddTask, onAddEvent, onEditEvent,
   sections, getEventTypeStyle,
@@ -40,6 +40,7 @@ export default function WeekView({
             const weightEntry = getWeightEntry(dateStr)
             const today = isToday(day)
             const overdue = hasOverdue(day)
+            const fullyDone = isFullyDone ? isFullyDone(day) : false
             const tasksBySection = {}
             sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
             const singleDayEvents = dayEvents.filter(e => !e.end_date || e.start_date === dateStr)
@@ -49,28 +50,29 @@ export default function WeekView({
                 background: '#fff', borderRadius: 14, padding: '12px 10px',
                 border: today ? '1.5px solid #aaa' : '1px solid #EBEBEB',
                 minHeight: isMobile ? 'auto' : 400, display: 'flex', flexDirection: 'column',
+                filter: fullyDone ? 'grayscale(1)' : 'none',
+                opacity: fullyDone ? 0.55 : 1,
               }}>
                 <div
                   onClick={() => goToDay(day)}
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0, cursor: 'pointer' }}
                 >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C' }}>{DAY_LABELS[day.getDay()]}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C' }}>{DAY_LABELS[day.getDay()]}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C' }}>{day.getDate()}</span>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C' }}>{day.getDate()}</span>
                     {overdue && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9A825' }} title="Overdue tasks" />}
                   </div>
                 </div>
 
-                {/* Editable weight on Fridays */}
                 {isFriday(day) && weightTarget && (
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#4A8C40', marginBottom: 5, flexShrink: 0, display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#4A8C40', marginBottom: 5, flexShrink: 0, display: 'flex', alignItems: 'baseline', gap: 3 }}>
                     <span>Wt: {weightTarget.target_weight}kg</span>
                     {editingWeightDate === dateStr ? (
                       <input
                         autoFocus type="number" step="0.1" value={weightVal}
                         onChange={e => setWeightVal(e.target.value)}
                         onBlur={() => handleWeightBlur(dateStr)}
-                        style={{ fontSize: 9, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 32, fontFamily: 'inherit' }}
+                        style={{ fontSize: 11, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 32, fontFamily: 'inherit' }}
                       />
                     ) : (
                       <span
@@ -89,7 +91,7 @@ export default function WeekView({
                         <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 3 }}>
                           <span
                             onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
-                            style={{ background: s.bg, color: s.textColor, fontSize: 9, fontWeight: 600, padding: '2px 7px', borderRadius: 5, cursor: 'pointer', flex: 1 }}
+                            style={{ background: s.bg, color: s.textColor, fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 5, cursor: 'pointer', flex: 1 }}
                           >{e.title}</span>
                           {tappedEvent === e.id && (
                             <div style={{ display: 'flex', gap: 2 }}>
@@ -103,7 +105,7 @@ export default function WeekView({
                   </div>
                 )}
 
-                <div onClick={() => onAddEvent(day)} style={{ fontSize: 9, color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, marginBottom: 6, flexShrink: 0 }}>
+                <div onClick={() => onAddEvent(day)} style={{ fontSize: 11, color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, marginBottom: 6, flexShrink: 0 }}>
                   <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#aaa" strokeWidth="2"><path d="M6 2v8M2 6h8"/></svg>
                   Add event
                 </div>
