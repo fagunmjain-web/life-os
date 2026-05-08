@@ -449,49 +449,42 @@ export default function App() {
         </div>
       )}
 
-      {/* STICKY HEADER */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '8px 16px 8px' }}>
-        {/* Row 1 — nav tabs at the very top */}
-        <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
-          {VIEWS.map(v => {
-            const isActive = activeView === v && v !== 'Today'
-            return (
-              <button key={v}
-                onClick={() => {
-                  if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') }
-                  else setActiveView(v)
-                }}
-                style={{
-                  flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 600,
-                  border: 'none',
-                  background: isActive ? '#2C2C2C' : '#e8e8e8',
-                  borderRadius: 10, cursor: 'pointer',
-                  color: isActive ? '#fff' : '#777',
-                  transition: 'all .15s', fontFamily: 'inherit',
-                }}
-              >{v}</button>
-            )
-          })}
-        </div>
+      {/* STICKY HEADER — single row */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '8px 16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 8 }}>
 
-        {/* Row 2 — hamburger / title / action buttons */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: showWeight && isMobile ? 4 : 0 }}>
           {/* Left: hamburger */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <button onClick={() => setHamOpen(true)} style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, padding: 4 }}>
-              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
-              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
-              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
-            </button>
+          <button onClick={() => setHamOpen(true)} style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, padding: 4, flexShrink: 0 }}>
+            <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+            <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+            <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+          </button>
+
+          {/* Centre: nav tabs — each an individual rounded pill */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 5 }}>
+            {VIEWS.map(v => {
+              const isActive = activeView === v && v !== 'Today'
+              return (
+                <button key={v}
+                  onClick={() => {
+                    if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') }
+                    else setActiveView(v)
+                  }}
+                  style={{
+                    padding: '7px 11px', fontSize: 13, fontWeight: 600,
+                    border: 'none',
+                    background: isActive ? '#2C2C2C' : '#e8e8e8',
+                    borderRadius: 10, cursor: 'pointer',
+                    color: isActive ? '#fff' : '#777',
+                    transition: 'all .15s', fontFamily: 'inherit', whiteSpace: 'nowrap',
+                  }}
+                >{v}</button>
+              )
+            })}
           </div>
-          {/* Center: nav arrows + title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>‹</button>
-            <div style={{ fontSize: 19, fontWeight: 600, color: '#2C2C2C', minWidth: 130, textAlign: 'center' }}>{getHeaderTitle()}</div>
-            <button onClick={() => navigate(1)}  style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>›</button>
-          </div>
-          {/* Right: year-view buttons or weight widget */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
+
+          {/* Right: year buttons / weight widget / ‹ date › */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
             {activeView === 'Year' && (
               <>
                 <button onClick={() => setTaskModal({ defaultSection: null })} style={yearBtn}>+ Task</button>
@@ -501,12 +494,15 @@ export default function App() {
             {showWeight && !isMobile && (
               <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
             )}
+            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>‹</button>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#2C2C2C', minWidth: 100, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
+            <button onClick={() => navigate(1)}  style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>›</button>
           </div>
         </div>
 
-        {/* Weight row — mobile Day+Friday only */}
+        {/* Weight — mobile Day+Friday only, below the single row */}
         {showWeight && isMobile && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
             <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
           </div>
         )}
