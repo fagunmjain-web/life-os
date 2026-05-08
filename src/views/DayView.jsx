@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { toDateStr } from '../utils.js'
 import Section from '../components/Section.jsx'
+import { useIsMobile } from '../hooks/useIsMobile.js'
 
 export default function DayView({
   currentDate, getTasksForDate, isCompleted, getEventsForDate,
   toggleCompletion, deleteTask, deleteEvent, onEditTask, onAddTask, onAddEvent, onEditEvent, sections,
 }) {
+  const isMobile = useIsMobile()
   const dateStr = toDateStr(currentDate)
   const dayTasks = getTasksForDate(currentDate)
   const dayEvents = getEventsForDate(currentDate)
@@ -47,8 +49,8 @@ export default function DayView({
           </div>
         )}
 
-        {/* Sections 2 per row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+        {/* Sections 2 per row on desktop, 1 per row on mobile */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 10 }}>
           {sections.map((sec, i) => {
             const isLast = i === sections.length - 1
             const isOdd = sections.length % 2 !== 0

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useIsMobile } from './hooks/useIsMobile.js'
 import { supabase } from './supabase.js'
 import { SECTIONS as DEFAULT_SECTIONS } from './sections.js'
 import { toDateStr, isFriday, addDays, startOfWeek, MONTH_SHORT, MONTH_NAMES } from './utils.js'
@@ -28,6 +29,7 @@ export default function App() {
   const [hamOpen, setHamOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const touchStartX = useRef(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => { loadAll() }, [])
 
@@ -202,7 +204,7 @@ export default function App() {
   const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7f7f5' }}
+    <div style={{ minHeight: '100vh', background: '#f7f7f5', overflowX: 'hidden', maxWidth: '100vw' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -262,7 +264,7 @@ export default function App() {
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '10px 20px 8px' }}>
         <div style={{ maxWidth: '100%' }}>
           {/* Row 1 */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: showWeight && isMobile ? 4 : 8 }}>
             <button onClick={() => setHamOpen(true)} style={{ width: 28, height: 28, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4, padding: 2, flexShrink: 0 }}>
               <span style={{ display: 'block', height: 1.5, background: '#555', borderRadius: 1, width: 18 }}></span>
               <span style={{ display: 'block', height: 1.5, background: '#555', borderRadius: 1, width: 18 }}></span>
@@ -270,15 +272,21 @@ export default function App() {
             </button>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
               <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer', padding: '0 6px', lineHeight: 1 }}>‹</button>
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#2C2C2C', minWidth: 150, textAlign: 'center' }}>{getHeaderTitle()}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: '#2C2C2C', minWidth: 120, textAlign: 'center' }}>{getHeaderTitle()}</div>
               <button onClick={() => navigate(1)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#888', cursor: 'pointer', padding: '0 6px', lineHeight: 1 }}>›</button>
             </div>
-            <div style={{ width: 28, flexShrink: 0 }}>
-              {showWeight && (
+            <div style={{ flexShrink: 0, minWidth: 28 }}>
+              {showWeight && !isMobile && (
                 <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
               )}
             </div>
           </div>
+          {/* Weight row — mobile only */}
+          {showWeight && isMobile && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
+              <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
+            </div>
+          )}
           {/* Row 2 — nav */}
           <div style={{ display: 'flex', gap: 3, background: '#ddd', borderRadius: 10, padding: 3 }}>
             {VIEWS.map(v => {

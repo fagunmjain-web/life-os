@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { toDateStr, isFriday, isToday, startOfWeek, addDays, DAY_LABELS } from '../utils.js'
 import Section from '../components/Section.jsx'
+import { useIsMobile } from '../hooks/useIsMobile.js'
 
 export default function WeekView({
   currentDate, setCurrentDate, setActiveView,
@@ -8,6 +9,7 @@ export default function WeekView({
   getWeightTarget, getWeightEntry, hasOverdue,
   toggleCompletion, deleteTask, deleteEvent, onEditTask, onAddTask, onAddEvent, onEditEvent, sections,
 }) {
+  const isMobile = useIsMobile()
   const weekStart = startOfWeek(currentDate)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const [tappedEvent, setTappedEvent] = useState(null)
@@ -19,8 +21,8 @@ export default function WeekView({
 
   return (
     <div style={{ paddingTop: 10 }}>
-      <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, minWidth: 700 }}>
+      <div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7, 1fr)', gap: 8 }}>
           {days.map(day => {
             const dateStr = toDateStr(day)
             const dayTasks = getTasksForDate(day)
@@ -36,7 +38,7 @@ export default function WeekView({
               <div key={dateStr} style={{
                 background: '#fff', borderRadius: 14, padding: '12px 10px',
                 border: today ? '1.5px solid #aaa' : '1px solid #EBEBEB',
-                minHeight: 400, display: 'flex', flexDirection: 'column',
+                minHeight: isMobile ? 'auto' : 400, display: 'flex', flexDirection: 'column',
               }}>
                 {/* Day header — clickable to go to day view */}
                 <div

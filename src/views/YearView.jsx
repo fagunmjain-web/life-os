@@ -1,10 +1,12 @@
 import { isToday, getDaysInMonth, getFirstDayOfMonth, MONTH_NAMES } from '../utils.js'
+import { useIsMobile } from '../hooks/useIsMobile.js'
 
 export default function YearView({
   currentDate, setCurrentDate, setActiveView,
   events, weightTargets, weightEntries,
   hasOverdue, onAddEvent, onAddTask,
 }) {
+  const isMobile = useIsMobile()
   const year = currentDate.getFullYear()
 
   function getWeightTarget(ds) { return weightTargets.find(w => w.target_date === ds) }
@@ -24,7 +26,7 @@ export default function YearView({
         <button onClick={() => onAddEvent(new Date())} style={topBtn}>+ Add Event</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10 }}>
         {Array.from({ length: 12 }, (_, mi) => {
           const totalDays = getDaysInMonth(year, mi)
           const firstDay = getFirstDayOfMonth(year, mi)
