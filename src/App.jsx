@@ -371,7 +371,16 @@ export default function App() {
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10 }}>Event types</div>
                 {eventTypes.map(et => (
                   <div key={et.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}>
-                    <div style={{ width: 14, height: 14, borderRadius: 3, background: et.color, flexShrink: 0, border: '1px solid rgba(0,0,0,0.1)' }} />
+                    <label style={{ cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                      <div style={{ width: 14, height: 14, borderRadius: 3, background: et.color, border: '1px solid rgba(0,0,0,0.1)' }} />
+                      <input
+                        type="color"
+                        value={et.color}
+                        onChange={e => setEventTypes(prev => prev.map(t => t.key === et.key ? { ...t, color: e.target.value } : t))}
+                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                        tabIndex={-1}
+                      />
+                    </label>
                     {editingEventType === et.key ? (
                       <input autoFocus value={editingEventTypeName}
                         onChange={e => setEditingEventTypeName(e.target.value)}
