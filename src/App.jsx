@@ -71,21 +71,25 @@ export default function App() {
     setLoading(false)
   }
 
-  // Bug fix: use String() coercion so UUID vs number mismatches never break comparison
   async function toggleCompletion(taskId, dateStr) {
     const existing = completions.find(
       c => String(c.task_id) === String(taskId) && c.completed_date === dateStr
     )
     if (existing) {
-      await supabase.from('task_completions').delete().eq('id', existing.id)
+      // Optimistic: remove immediately so switching views shows the change instantly
       setCompletions(prev => prev.filter(c => c.id !== existing.id))
+      await supabase.from('task_completions').delete().eq('id', existing.id)
     } else {
+      // Optimistic: add a temp record immediately, replace with real one after DB responds
+      const tempId = `temp_${Date.now()}`
+      setCompletions(prev => [...prev, { id: tempId, task_id: taskId, completed_date: dateStr }])
       const { data } = await supabase
         .from('task_completions')
         .insert({ task_id: taskId, completed_date: dateStr })
         .select()
         .single()
-      if (data) setCompletions(prev => [...prev, data])
+      if (data) setCompletions(prev => prev.map(c => c.id === tempId ? data : c))
+      else setCompletions(prev => prev.filter(c => c.id !== tempId))
     }
   }
 
@@ -157,10 +161,11 @@ export default function App() {
     const dateStr = toDateStr(date)
     const dayName = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()]
     return tasks.filter(t => {
-      if (t.is_recurring) {
-        const dow = t.days_of_week
-        if (!dow || !Array.isArray(dow) || dow.length === 0) return false
-        return dow.includes(dayName)
+      const dow = t.days_of_week
+      const hasRealDays = Array.isArray(dow) && dow.length > 0
+      // Treat as recurring when flagged OR when it has days configured (handles legacy null is_recurring)
+      if (t.is_recurring === true || (t.is_recurring !== false && hasRealDays)) {
+        return hasRealDays && dow.includes(dayName)
       }
       return t.specific_date === dateStr
     })
