@@ -109,11 +109,17 @@ export default function App() {
   }
 
   async function saveTask(taskData) {
-    if (taskData.id) {
-      const { data } = await supabase.from('tasks').update(taskData).eq('id', taskData.id).select().single()
+    // Only send columns that exist in the tasks table — extra fields (e.g. end_date) cause silent insert failures
+    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day } = taskData
+    const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
+
+    if (id) {
+      const { data, error } = await supabase.from('tasks').update(payload).eq('id', id).select().single()
+      if (error) { console.error('[saveTask] update error:', error); return }
       if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
     } else {
-      const { data } = await supabase.from('tasks').insert(taskData).select().single()
+      const { data, error } = await supabase.from('tasks').insert(payload).select().single()
+      if (error) { console.error('[saveTask] insert error:', error); return }
       if (data) setTasks(prev => [...prev, data])
     }
     setTaskModal(null)
@@ -135,7 +141,11 @@ export default function App() {
   }
 
   async function saveEvent(eventData) {
-    const { data } = await supabase.from('events').insert(eventData).select().single()
+    // Pick only known events table columns (start_time may not exist yet)
+    const { title, event_type, start_date, end_date } = eventData
+    const payload = { title, event_type, start_date, end_date }
+    const { data, error } = await supabase.from('events').insert(payload).select().single()
+    if (error) { console.error('[saveEvent] insert error:', error); return }
     if (data) setEvents(prev => [...prev, data])
     setEventModal(null)
   }
@@ -146,7 +156,10 @@ export default function App() {
   }
 
   async function updateEvent(eventData) {
-    const { data } = await supabase.from('events').update(eventData).eq('id', eventData.id).select().single()
+    const { id, title, event_type, start_date, end_date } = eventData
+    const payload = { title, event_type, start_date, end_date }
+    const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().single()
+    if (error) { console.error('[updateEvent] update error:', error); return }
     if (data) setEvents(prev => prev.map(e => e.id === data.id ? data : e))
     setEventModal(null)
   }
