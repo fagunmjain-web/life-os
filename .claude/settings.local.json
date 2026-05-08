@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C /Users/fagunmehta/Desktop/life-os status)"
+      "Bash(git -C /Users/fagunmehta/Desktop/life-os status)",
+      "Bash(git remote *)",
+      "Bash(git push *)"
     ]
   }
 }

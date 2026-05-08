@@ -8,7 +8,7 @@ export default function MonthView({
   events, weightTargets, weightEntries, sections,
   getTasksForDate, isCompleted, hasOverdue,
   getWeightTarget, getWeightEntry,
-  saveWeight, onAddEvent, onAddTask,
+  saveWeight, onAddEvent, onAddTask, getEventTypeStyle,
 }) {
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -54,13 +54,12 @@ export default function MonthView({
     })
     return Object.entries(counts).map(([key, count]) => {
       const sec = sections.find(s => s.key === key)
-      return sec ? { color: sec.cb, count } : null
+      return sec ? { lightColor: sec.sb, darkColor: sec.cb, count } : null
     }).filter(Boolean)
   }
 
   function goToDay(day) {
-    const newDate = new Date(year, month, day)
-    setCurrentDate(newDate)
+    setCurrentDate(new Date(year, month, day))
     setActiveView('Day')
   }
 
@@ -72,17 +71,19 @@ export default function MonthView({
   const rangeBg = '#FFE0B2'
 
   return (
-    <div style={{ paddingTop: 10 }}>
-      <div style={{ background: '#fff', borderRadius: 16, padding: '16px', border: '1px solid #EBEBEB' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 6 }}>
+    <div style={{ paddingTop: 10, height: 'calc(100vh - 112px)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: '12px 16px 8px', border: '1px solid #EBEBEB', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* Day-of-week headers */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4, flexShrink: 0 }}>
           {DOW.map(d => (
             <div key={d} style={{ fontSize: 11, fontWeight: 600, color: d === 'Fri' ? '#4A8C40' : '#aaa', textAlign: 'center', padding: '4px 0' }}>{d}</div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4 }}>
+        {/* Calendar grid — fills remaining height */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, flex: 1, gridAutoRows: '1fr' }}>
           {Array.from({ length: firstDay }).map((_, i) => (
-            <div key={`e${i}`} style={{ borderRadius: 8, minHeight: 80, opacity: .2 }} />
+            <div key={`e${i}`} style={{ borderRadius: 8, opacity: .2 }} />
           ))}
 
           {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
@@ -103,47 +104,47 @@ export default function MonthView({
             if (today) border = '1.5px solid #aaa'
 
             return (
-              <div key={day} style={{ background: bg, borderRadius: br, padding: '5px 4px', minHeight: 80, border, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
-                {/* Top row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+              <div key={day} style={{ background: bg, borderRadius: br, padding: '4px 3px', border, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     {overdue && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9A825' }} />}
-                    {/* + button */}
                     <div
                       onClick={() => setOpenAddRow(openAddRow === day ? null : day)}
                       style={{ width: 14, height: 14, border: '1px solid #ccc', borderRadius: 3, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#aaa', cursor: 'pointer', flexShrink: 0 }}
                     >+</div>
                   </div>
-                  {/* Date — click to go to day */}
                   <span
                     onClick={() => goToDay(day)}
                     style={{ fontSize: 11, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer' }}
                   >{day}</span>
                 </div>
 
-                {/* Events */}
-                {dayEvents.map(e => (
-                  <div key={e.id} style={{
-                    fontSize: 8, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
-                    background: e.event_type === 'celebration' ? '#E57373' : '#5B8ED6',
-                    color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  }}>{e.title}</div>
-                ))}
+                {dayEvents.map(e => {
+                  const s = getEventTypeStyle(e.event_type)
+                  return (
+                    <div key={e.id} style={{
+                      fontSize: 8, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
+                      background: s.bg, color: s.textColor,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    }}>{e.title}</div>
+                  )
+                })}
 
-                {/* Task count dots */}
+                {/* Task dots — use light (sb) color */}
                 {dots.length > 0 && (
                   <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     {dots.map((dot, i) => (
                       <div key={i} style={{
                         width: 14, height: 14, borderRadius: '50%',
-                        background: dot.color, display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: 7, fontWeight: 700, color: '#fff',
+                        background: dot.lightColor,
+                        border: `1px solid ${dot.darkColor}`,
+                        display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', fontSize: 7, fontWeight: 700, color: dot.darkColor,
                       }}>{dot.count}</div>
                     ))}
                   </div>
                 )}
 
-                {/* Weight on Fridays */}
                 {showWt && wTarget && (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 'auto' }} onClick={e => e.stopPropagation()}>
                     <span style={{ fontSize: 7, fontWeight: 700, color: '#4A8C40' }}>Wt:{wTarget.target_weight}kg</span>
@@ -155,14 +156,13 @@ export default function MonthView({
                       />
                     ) : (
                       <span
-                        onClick={() => { setEditingWeight(ds); setWeightVal(wEntry?.actual_weight || '') }}
+                        onClick={() => { setEditingWeight(ds); setWeightVal(wEntry?.actual_weight ?? '') }}
                         style={{ fontSize: 7, fontWeight: 700, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 16, cursor: 'text', display: 'inline-block' }}
-                      >{wEntry?.actual_weight || ''}</span>
+                      >{wEntry?.actual_weight ?? ''}</span>
                     )}
                   </div>
                 )}
 
-                {/* Add row */}
                 {openAddRow === day && (
                   <div style={{ display: 'flex', gap: 3, marginTop: 2 }}>
                     <div onClick={() => { onAddTask(null, ds); setOpenAddRow(null) }} style={addBtn}>+ Task</div>

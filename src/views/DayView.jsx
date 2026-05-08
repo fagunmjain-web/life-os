@@ -5,7 +5,8 @@ import { useIsMobile } from '../hooks/useIsMobile.js'
 
 export default function DayView({
   currentDate, getTasksForDate, isCompleted, getEventsForDate,
-  toggleCompletion, deleteTask, deleteEvent, onEditTask, onAddTask, onAddEvent, onEditEvent, sections,
+  toggleCompletion, deleteTask, deleteEvent, onEditTask, onAddTask, onAddEvent, onEditEvent,
+  sections, getEventTypeStyle,
 }) {
   const isMobile = useIsMobile()
   const dateStr = toDateStr(currentDate)
@@ -21,18 +22,15 @@ export default function DayView({
     <div style={{ paddingTop: 10 }}>
       <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', border: '1px solid #EBEBEB' }}>
 
-        {/* Event badges - left aligned */}
-        {(singleDayEvents.length > 0 || true) && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14, alignItems: 'center' }}>
-            {singleDayEvents.map(e => (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14, alignItems: 'center' }}>
+          {singleDayEvents.map(e => {
+            const s = getEventTypeStyle(e.event_type)
+            return (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span
                   onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
-                  style={{
-                    background: e.event_type === 'celebration' ? '#E57373' : e.event_type === 'travel' ? '#FFE0B2' : '#5B8ED6',
-                    color: e.event_type === 'travel' ? '#4E2100' : '#fff',
-                    fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 10, cursor: 'pointer',
-                  }}>{e.title}</span>
+                  style={{ background: s.bg, color: s.textColor, fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 10, cursor: 'pointer' }}
+                >{e.title}</span>
                 {tappedEvent === e.id && (
                   <div style={{ display: 'flex', gap: 3 }}>
                     <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#E8F5E4','#2C4A24','#C8E6C0')}>✎</button>
@@ -40,22 +38,21 @@ export default function DayView({
                   </div>
                 )}
               </div>
-            ))}
-            <button onClick={() => onAddEvent(currentDate)} style={{
-              width: 28, height: 28, border: '1px solid #ddd', borderRadius: 8,
-              background: '#fff', cursor: 'pointer', fontSize: 16, color: '#aaa',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>+</button>
-          </div>
-        )}
+            )
+          })}
+          <button onClick={() => onAddEvent(currentDate)} style={{
+            width: 28, height: 28, border: '1px solid #ddd', borderRadius: 8,
+            background: '#fff', cursor: 'pointer', fontSize: 16, color: '#aaa',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>+</button>
+        </div>
 
-        {/* Sections 2 per row on desktop, 1 per row on mobile */}
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: 10 }}>
           {sections.map((sec, i) => {
             const isLast = i === sections.length - 1
             const isOdd = sections.length % 2 !== 0
             return (
-              <div key={sec.key} style={isLast && isOdd ? { gridColumn: '1 / -1' } : {}}>
+              <div key={sec.key} style={isLast && isOdd && !isMobile ? { gridColumn: '1 / -1' } : {}}>
                 <Section
                   sec={sec}
                   tasks={tasksBySection[sec.key] || []}

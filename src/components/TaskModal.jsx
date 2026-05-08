@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import TimePicker from './TimePicker.jsx'
 
 const DAY_OPTIONS = ['mon','tue','wed','thu','fri','sat','sun']
 const DAY_LABELS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
@@ -30,8 +31,6 @@ export default function TaskModal({ task, defaultSection, defaultDate, sections,
     })
   }
 
-  const selectedSec = sections.find(s => s.key === section)
-
   return (
     <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={modal}>
@@ -50,8 +49,8 @@ export default function TaskModal({ task, defaultSection, defaultDate, sections,
               <button key={s.key} onClick={() => setSection(s.key)} style={{
                 padding: '5px 10px', borderRadius: 7, fontSize: 11, fontWeight: 600,
                 border: `1.5px solid ${s.cb}`, cursor: 'pointer', fontFamily: 'inherit',
-                background: section === s.key ? s.sb : 'transparent',
-                color: s.ct,
+                background: section === s.key ? s.cb : s.sb,
+                color: section === s.key ? '#fff' : s.ct,
                 transition: 'all .15s',
               }}>{s.label}</button>
             ))}
@@ -91,7 +90,18 @@ export default function TaskModal({ task, defaultSection, defaultDate, sections,
         )}
 
         <Field label="Time (optional)">
-          <input type="time" value={timeOfDay} onChange={e => setTimeOfDay(e.target.value)} style={input} />
+          {timeOfDay ? (
+            <div>
+              <TimePicker value={timeOfDay} onChange={setTimeOfDay} />
+              <button onClick={() => setTimeOfDay('')} style={{ marginTop: 8, fontSize: 11, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                Clear time
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setTimeOfDay('09:00')} style={{ fontSize: 12, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              + Set time
+            </button>
+          )}
         </Field>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>

@@ -3,33 +3,35 @@ import { toDateStr } from '../utils.js'
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
-export default function EventModal({ date, event, onSave, onUpdate, onClose }) {
+const DEFAULT_EVENT_TYPES = [
+  { key: 'celebration', label: 'Celebrations', color: '#E57373', bg: '#FFEBEB', textColor: '#C62828' },
+  { key: 'important', label: 'Important', color: '#5B8ED6', bg: '#E6F1FB', textColor: '#185FA5' },
+  { key: 'travel', label: 'Travel', color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
+]
+
+export default function EventModal({ date, event, onSave, onUpdate, onClose, eventTypes }) {
+  const types = eventTypes || DEFAULT_EVENT_TYPES
   const isEdit = !!event
   const dateStr = date ? toDateStr(date) : event?.start_date || ''
   const d = date || (event?.start_date ? new Date(event.start_date + 'T00:00:00') : new Date())
   const label = `${d.getDate()} ${MONTH_SHORT[d.getMonth()]} ${d.getFullYear()}`
 
   const [title, setTitle] = useState(event?.title || '')
-  const [type, setType] = useState(event?.event_type || 'important')
+  const [type, setType] = useState(event?.event_type || types[0]?.key || 'important')
   const [endDate, setEndDate] = useState(event?.end_date || '')
 
   function handleSave() {
     if (!title.trim()) return
+    const selectedType = types.find(t => t.key === type)
     const data = {
       title: title.trim(),
       event_type: type,
       start_date: dateStr,
-      end_date: type === 'travel' && endDate ? endDate : null,
+      end_date: (selectedType?.key === 'travel' || type === 'travel') && endDate ? endDate : null,
     }
     if (isEdit) onUpdate({ ...data, id: event.id })
     else onSave(data)
   }
-
-  const types = [
-    { key: 'celebration', label: 'Celebration', bg: '#FFEBEB', color: '#C62828', border: '#E57373' },
-    { key: 'important', label: 'Important', bg: '#E6F1FB', color: '#185FA5', border: '#5B8ED6' },
-    { key: 'travel', label: 'Travel', bg: '#FFF3E0', color: '#E65100', border: '#E65100' },
-  ]
 
   return (
     <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
@@ -47,13 +49,13 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose }) {
 
         <div style={{ marginBottom: 14 }}>
           <div style={fieldLabel}>Type</div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {types.map(t => (
               <button key={t.key} onClick={() => setType(t.key)} style={{
-                flex: 1, padding: '7px 0', fontSize: 11, fontWeight: 600, borderRadius: 8,
-                border: `1.5px solid ${type === t.key ? t.border : '#e0e0e0'}`,
-                background: type === t.key ? t.bg : '#f9f9f9',
-                color: type === t.key ? t.color : '#888',
+                flex: 1, minWidth: 80, padding: '7px 0', fontSize: 11, fontWeight: 600, borderRadius: 8,
+                border: `1.5px solid ${t.color}`,
+                background: type === t.key ? t.color : t.bg,
+                color: type === t.key ? '#fff' : t.textColor,
                 cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
               }}>{t.label}</button>
             ))}

@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function WeightRow({ target, entry, dateStr, saveWeight, size = 'normal' }) {
   const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(entry?.actual_weight || '')
+  const [val, setVal] = useState(entry?.actual_weight ?? '')
+
+  useEffect(() => {
+    setVal(entry?.actual_weight ?? '')
+  }, [entry?.actual_weight])
 
   if (!target) return null
 
@@ -23,28 +27,14 @@ export default function WeightRow({ target, entry, dateStr, saveWeight, size = '
       </span>
       {editing ? (
         <input
-          autoFocus
-          type="number"
-          step="0.1"
-          value={val}
-          onChange={e => setVal(e.target.value)}
-          onBlur={handleBlur}
-          style={{
-            fontSize, fontWeight: 700, color: '#2C2C2C',
-            border: 'none', borderBottom: '1.5px solid #aaa',
-            background: 'transparent', outline: 'none', width: 50,
-            fontFamily: 'inherit',
-          }}
+          autoFocus type="number" step="0.1" value={val}
+          onChange={e => setVal(e.target.value)} onBlur={handleBlur}
+          style={{ fontSize, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 50, fontFamily: 'inherit' }}
         />
       ) : (
-        <span
-          onClick={() => setEditing(true)}
-          style={{
-            fontSize, fontWeight: 700, color: '#2C2C2C',
-            borderBottom: '1.5px solid #aaa', minWidth: 40,
-            cursor: 'text', display: 'inline-block',
-          }}
-        >{entry?.actual_weight || ''}</span>
+        <span onClick={() => setEditing(true)} style={{ fontSize, fontWeight: 700, color: '#2C2C2C', borderBottom: '1.5px solid #aaa', minWidth: 40, cursor: 'text', display: 'inline-block' }}>
+          {entry?.actual_weight ?? ''}
+        </span>
       )}
     </div>
   )

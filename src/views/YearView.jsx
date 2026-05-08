@@ -4,29 +4,21 @@ import { useIsMobile } from '../hooks/useIsMobile.js'
 export default function YearView({
   currentDate, setCurrentDate, setActiveView,
   events, weightTargets, weightEntries,
-  hasOverdue, onAddEvent, onAddTask,
+  hasOverdue, getEventTypeStyle,
 }) {
   const isMobile = useIsMobile()
   const year = currentDate.getFullYear()
 
   function getWeightTarget(ds) { return weightTargets.find(w => w.target_date === ds) }
-  function getWeightEntry(ds) { return weightEntries.find(w => w.entry_date === ds) }
 
   function goToMonth(mi) {
-    const newDate = new Date(year, mi, 1)
-    setCurrentDate(newDate)
+    setCurrentDate(new Date(year, mi, 1))
     setActiveView('Month')
   }
 
   return (
-    <div style={{ paddingTop: 10 }}>
-      {/* Top right buttons */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 10 }}>
-        <button onClick={() => onAddTask()} style={topBtn}>+ Add Task</button>
-        <button onClick={() => onAddEvent(new Date())} style={topBtn}>+ Add Event</button>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10 }}>
+    <div style={{ paddingTop: 10, height: 'calc(100vh - 112px)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10, flex: 1, gridAutoRows: '1fr', overflow: 'auto' }}>
         {Array.from({ length: 12 }, (_, mi) => {
           const totalDays = getDaysInMonth(year, mi)
           const firstDay = getFirstDayOfMonth(year, mi)
@@ -52,7 +44,6 @@ export default function YearView({
             }
           })
 
-          // Get last Friday weight for this month
           let lastFridayWt = null
           for (let d = totalDays; d >= 1; d--) {
             if (new Date(year, mi, d).getDay() === 5) {
@@ -66,7 +57,7 @@ export default function YearView({
             <div
               key={mi}
               onClick={() => goToMonth(mi)}
-              style={{ background: '#fff', borderRadius: 12, padding: 10, border: '1px solid #EBEBEB', cursor: 'pointer' }}
+              style={{ background: '#fff', borderRadius: 12, padding: 10, border: '1px solid #EBEBEB', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
             >
               <div style={{ fontSize: 11, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>{MONTH_NAMES[mi]}</div>
 
@@ -76,7 +67,7 @@ export default function YearView({
                 ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, flex: 1 }}>
                 {Array.from({ length: firstDay }).map((_, i) => (
                   <div key={`e${i}`} style={{ minHeight: 12, opacity: .2 }} />
                 ))}
@@ -99,13 +90,16 @@ export default function YearView({
                         {overdue && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#F9A825' }} />}
                         <span style={{ fontSize: 6, fontWeight: 600, color: range ? '#4E2100' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
                       </div>
-                      {ev.map(e => (
-                        <div key={e.id} style={{
-                          fontSize: 4, fontWeight: 600, padding: '0 2px', borderRadius: 1,
-                          background: e.event_type === 'celebration' ? '#E57373' : '#5B8ED6',
-                          color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
-                        }}>{e.title}</div>
-                      ))}
+                      {ev.map(e => {
+                        const s = getEventTypeStyle(e.event_type)
+                        return (
+                          <div key={e.id} style={{
+                            fontSize: 4, fontWeight: 600, padding: '0 2px', borderRadius: 1,
+                            background: s.bg, color: s.textColor,
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
+                          }}>{e.title}</div>
+                        )
+                      })}
                     </div>
                   )
                 })}
@@ -116,7 +110,6 @@ export default function YearView({
                 })()}
               </div>
 
-              {/* Weight target */}
               {lastFridayWt && (
                 <div style={{ marginTop: 5, paddingTop: 4, borderTop: '1px dashed #eee', fontSize: 7, fontWeight: 700, color: '#4A8C40' }}>
                   Wt: {lastFridayWt}kg
@@ -128,10 +121,4 @@ export default function YearView({
       </div>
     </div>
   )
-}
-
-const topBtn = {
-  padding: '6px 14px', fontSize: 12, fontWeight: 600,
-  border: '1px solid #ccc', background: '#fff', color: '#2C2C2C',
-  borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit',
 }

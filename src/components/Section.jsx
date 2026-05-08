@@ -1,5 +1,14 @@
 import { useState } from 'react'
 
+function Chevron({ open }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ display: 'block', transition: 'transform .2s', transform: open ? 'rotate(0deg)' : 'rotate(180deg)', opacity: 0.5 }}>
+      <path d="M2 8L6 4L10 8" />
+    </svg>
+  )
+}
+
 export default function Section({ sec, tasks, dateStr, isCompleted, toggleCompletion, onEditTask, onDeleteTask, onAddTask, compact = false }) {
   const [open, setOpen] = useState(true)
   const [hoveredTask, setHoveredTask] = useState(null)
@@ -17,12 +26,7 @@ export default function Section({ sec, tasks, dateStr, isCompleted, toggleComple
         borderRadius: open ? '12px 12px 0 0' : 12, userSelect: 'none',
       }}>
         <span>{sec.label}</span>
-        <span style={{
-          fontSize: 10, opacity: .6,
-          display: 'inline-block',
-          transform: open ? 'rotate(0deg)' : 'rotate(180deg)',
-          transition: 'transform .2s',
-        }}>▲</span>
+        <Chevron open={open} />
       </div>
 
       {open && (

@@ -7,16 +7,25 @@ export default function WeekView({
   currentDate, setCurrentDate, setActiveView,
   getTasksForDate, isCompleted, getEventsForDate,
   getWeightTarget, getWeightEntry, hasOverdue,
-  toggleCompletion, deleteTask, deleteEvent, onEditTask, onAddTask, onAddEvent, onEditEvent, sections,
+  toggleCompletion, saveWeight, deleteTask, deleteEvent,
+  onEditTask, onAddTask, onAddEvent, onEditEvent,
+  sections, getEventTypeStyle,
 }) {
   const isMobile = useIsMobile()
   const weekStart = startOfWeek(currentDate)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
   const [tappedEvent, setTappedEvent] = useState(null)
+  const [editingWeightDate, setEditingWeightDate] = useState(null)
+  const [weightVal, setWeightVal] = useState('')
 
   function goToDay(date) {
     setCurrentDate(date)
     setActiveView('Day')
+  }
+
+  function handleWeightBlur(ds) {
+    setEditingWeightDate(null)
+    if (weightVal !== '' && !isNaN(weightVal)) saveWeight(ds, parseFloat(weightVal))
   }
 
   return (
@@ -28,6 +37,7 @@ export default function WeekView({
             const dayTasks = getTasksForDate(day)
             const dayEvents = getEventsForDate(day)
             const weightTarget = getWeightTarget(dateStr)
+            const weightEntry = getWeightEntry(dateStr)
             const today = isToday(day)
             const overdue = hasOverdue(day)
             const tasksBySection = {}
@@ -40,7 +50,6 @@ export default function WeekView({
                 border: today ? '1.5px solid #aaa' : '1px solid #EBEBEB',
                 minHeight: isMobile ? 'auto' : 400, display: 'flex', flexDirection: 'column',
               }}>
-                {/* Day header — clickable to go to day view */}
                 <div
                   onClick={() => goToDay(day)}
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0, cursor: 'pointer' }}
@@ -52,44 +61,53 @@ export default function WeekView({
                   </div>
                 </div>
 
-                {/* Weight — text only on Fridays */}
+                {/* Editable weight on Fridays */}
                 {isFriday(day) && weightTarget && (
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#4A8C40', marginBottom: 5, flexShrink: 0 }}>
-                    Wt: {weightTarget.target_weight}kg <span style={{ borderBottom: '1.5px solid #aaa', display: 'inline-block', width: 28, verticalAlign: 'bottom' }}></span>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#4A8C40', marginBottom: 5, flexShrink: 0, display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                    <span>Wt: {weightTarget.target_weight}kg</span>
+                    {editingWeightDate === dateStr ? (
+                      <input
+                        autoFocus type="number" step="0.1" value={weightVal}
+                        onChange={e => setWeightVal(e.target.value)}
+                        onBlur={() => handleWeightBlur(dateStr)}
+                        style={{ fontSize: 9, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 32, fontFamily: 'inherit' }}
+                      />
+                    ) : (
+                      <span
+                        onClick={() => { setEditingWeightDate(dateStr); setWeightVal(weightEntry?.actual_weight ?? '') }}
+                        style={{ borderBottom: '1.5px solid #aaa', display: 'inline-block', minWidth: 28, cursor: 'text', color: '#2C2C2C' }}
+                      >{weightEntry?.actual_weight ?? ''}</span>
+                    )}
                   </div>
                 )}
 
-                {/* Events — left aligned */}
                 {singleDayEvents.length > 0 && (
                   <div style={{ flexShrink: 0, marginBottom: 4 }}>
-                    {singleDayEvents.map(e => (
-                      <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 3 }}>
-                        <span
-                          onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
-                          style={{
-                            background: e.event_type === 'celebration' ? '#E57373' : e.event_type === 'travel' ? '#FFE0B2' : '#5B8ED6',
-                            color: e.event_type === 'travel' ? '#4E2100' : '#fff',
-                            fontSize: 9, fontWeight: 600, padding: '2px 7px', borderRadius: 5,
-                            cursor: 'pointer', flex: 1,
-                          }}>{e.title}</span>
-                        {tappedEvent === e.id && (
-                          <div style={{ display: 'flex', gap: 2 }}>
-                            <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#E8F5E4','#2C4A24','#C8E6C0')}>✎</button>
-                            <button onClick={() => { deleteEvent(e.id); setTappedEvent(null) }} style={evActBtn('#FFEBEE','#C62828','#FFCDD2')}>✕</button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                    {singleDayEvents.map(e => {
+                      const s = getEventTypeStyle(e.event_type)
+                      return (
+                        <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 3 }}>
+                          <span
+                            onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
+                            style={{ background: s.bg, color: s.textColor, fontSize: 9, fontWeight: 600, padding: '2px 7px', borderRadius: 5, cursor: 'pointer', flex: 1 }}
+                          >{e.title}</span>
+                          {tappedEvent === e.id && (
+                            <div style={{ display: 'flex', gap: 2 }}>
+                              <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#E8F5E4','#2C4A24','#C8E6C0')}>✎</button>
+                              <button onClick={() => { deleteEvent(e.id); setTappedEvent(null) }} style={evActBtn('#FFEBEE','#C62828','#FFCDD2')}>✕</button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 
-                {/* + Add event */}
                 <div onClick={() => onAddEvent(day)} style={{ fontSize: 9, color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, marginBottom: 6, flexShrink: 0 }}>
                   <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#aaa" strokeWidth="2"><path d="M6 2v8M2 6h8"/></svg>
                   Add event
                 </div>
 
-                {/* Sections */}
                 <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
                   {sections.map(sec => (
                     <Section key={sec.key} sec={sec}
