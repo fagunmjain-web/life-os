@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { toDateStr, isToday, getDaysInMonth, getFirstDayOfMonth, getFridaysInMonth, MONTH_NAMES } from '../utils.js'
+import { toDateStr, isToday, getDaysInMonth, getFirstDayOfMonth, getFridaysInMonth } from '../utils.js'
 
 const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
@@ -42,20 +42,17 @@ export default function MonthView({
     return events.filter(e => e.start_date === ds && !e.end_date)
   }
 
-  function getTaskDots(day) {
+  // Returns one entry per section that has incomplete tasks
+  function getTaskBoxes(day) {
     const date = new Date(year, month, day)
     const dayTasks = getTasksForDate(date)
     const dateStr = getDateStr(day)
-    const counts = {}
-    dayTasks.forEach(t => {
-      if (!isCompleted(t.id, dateStr)) {
-        counts[t.section] = (counts[t.section] || 0) + 1
-      }
-    })
-    return Object.entries(counts).map(([key, count]) => {
-      const sec = sections.find(s => s.key === key)
-      return sec ? { accentColor: sec.cb, bgColor: sec.sb, count } : null
-    }).filter(Boolean)
+    return sections
+      .map(sec => ({
+        sec,
+        tasks: dayTasks.filter(t => t.section === sec.key && !isCompleted(t.id, dateStr)),
+      }))
+      .filter(({ tasks }) => tasks.length > 0)
   }
 
   function goToDay(day) {
@@ -71,8 +68,9 @@ export default function MonthView({
   const rangeBg = '#FFE0B2'
 
   return (
-    <div style={{ paddingTop: 10, height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ paddingTop: 10, height: 'calc(100vh - 62px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ background: '#fff', borderRadius: 16, padding: '12px 16px 8px', border: '1px solid #EBEBEB', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
         {/* Day-of-week headers */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4, flexShrink: 0 }}>
           {DOW.map(d => (
@@ -80,8 +78,8 @@ export default function MonthView({
           ))}
         </div>
 
-        {/* Calendar grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, flex: 1, gridAutoRows: '1fr' }}>
+        {/* Calendar grid — fixed 120px rows, scrolls if taller than card */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, gridAutoRows: '120px', overflowY: 'auto', flex: 1 }}>
           {Array.from({ length: firstDay }).map((_, i) => (
             <div key={`e${i}`} style={{ borderRadius: 8, opacity: .2 }} />
           ))}
@@ -96,79 +94,90 @@ export default function MonthView({
             const wTarget = getWeightTarget(ds)
             const wEntry = getWeightEntry(ds)
             const showWt = fridays.includes(day)
-            const dots = getTaskDots(day)
+            const boxes = getTaskBoxes(day)
             const addOpen = openAddRow === day
 
-            let bg = '#fff', br = '8px', border = '1px solid #f0f0f0'
+            let bg = '#fff', br = '8px', border = '1px solid #f0f0f0', shadow = 'none'
             if (range === 'start') { bg = rangeBg; br = '8px 0 0 8px'; border = 'none' }
-            if (range === 'mid')   { bg = rangeBg; br = '0'; border = 'none' }
+            if (range === 'mid')   { bg = rangeBg; br = '0';            border = 'none' }
             if (range === 'end')   { bg = rangeBg; br = '0 8px 8px 0'; border = 'none' }
-            if (today) border = '1.5px solid #aaa'
+            if (today) { border = 'none'; shadow = '0 2px 10px rgba(0,0,0,0.1)' }
 
             return (
               <div key={day} style={{
                 background: bg, borderRadius: br, padding: '4px 3px', border,
-                display: 'flex', flexDirection: 'column', gap: 2, overflow: 'hidden',
+                boxShadow: shadow,
+                display: 'flex', flexDirection: 'column', gap: 2,
+                height: 120, overflowY: 'auto', flexShrink: 0,
                 filter: fullyDone ? 'grayscale(1)' : 'none',
                 opacity: fullyDone ? 0.55 : 1,
               }}>
-                {/* Day header row — + button with inline task/event buttons */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
+                {/* Day header — + toggle and date number */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1, flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
                     {overdue && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9A825', flexShrink: 0 }} />}
-                    {/* + toggle button */}
                     <div
                       onClick={() => setOpenAddRow(addOpen ? null : day)}
                       style={{ width: 13, height: 13, border: '1px solid #ccc', borderRadius: 3, background: addOpen ? '#2C2C2C' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: addOpen ? '#fff' : '#aaa', cursor: 'pointer', flexShrink: 0 }}
                     >+</div>
-                    {/* Inline add buttons appear next to the + */}
                     {addOpen && (
                       <div style={{ display: 'flex', gap: 2, flex: 1, minWidth: 0 }}>
-                        <div
-                          onClick={() => { onAddTask(null, ds); setOpenAddRow(null) }}
-                          style={{ fontSize: 6, padding: '1px 3px', background: '#2C2C2C', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
-                        >Task</div>
-                        <div
-                          onClick={() => { onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }}
-                          style={{ fontSize: 6, padding: '1px 3px', background: '#5B8ED6', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
-                        >Event</div>
+                        <div onClick={() => { onAddTask(null, ds); setOpenAddRow(null) }}
+                          style={{ fontSize: 6, padding: '1px 3px', background: '#2C2C2C', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Task</div>
+                        <div onClick={() => { onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }}
+                          style={{ fontSize: 6, padding: '1px 3px', background: '#5B8ED6', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Event</div>
                       </div>
                     )}
                   </div>
-                  <span
-                    onClick={() => goToDay(day)}
-                    style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}
-                  >{day}</span>
+                  {/* Today: filled blue circle; other days: plain number */}
+                  {today ? (
+                    <div
+                      onClick={() => goToDay(day)}
+                      style={{
+                        width: 22, height: 22, borderRadius: '50%',
+                        background: '#5B8ED6', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                      }}
+                    >{day}</div>
+                  ) : (
+                    <span
+                      onClick={() => goToDay(day)}
+                      style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}
+                    >{day}</span>
+                  )}
                 </div>
 
+                {/* Events */}
                 {dayEvents.map(e => {
                   const s = getEventTypeStyle(e.event_type)
                   return (
                     <div key={e.id} style={{
-                      fontSize: 10, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
-                      background: s.bg, color: s.textColor,
+                      fontSize: 9, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
+                      background: s.bg, color: s.textColor, flexShrink: 0,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{e.title}</div>
                   )
                 })}
 
-                {/* Task dots — outlined circle: white bg, colored border, colored count */}
-                {dots.length > 0 && (
-                  <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                    {dots.map((dot, i) => (
-                      <div key={i} style={{
-                        width: 14, height: 14, borderRadius: '50%',
-                        background: '#fff',
-                        border: `1.5px solid ${dot.accentColor}`,
-                        display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: 7, fontWeight: 700, color: dot.accentColor,
-                      }}>{dot.count}</div>
+                {/* Incomplete task boxes — one per section, stacked */}
+                {boxes.map(({ sec, tasks }) => (
+                  <div key={sec.key} style={{
+                    background: sec.sb,
+                    borderLeft: `3px solid ${sec.cb}`,
+                    borderRadius: 4,
+                    padding: '2px 4px',
+                    flexShrink: 0,
+                  }}>
+                    {tasks.map(t => (
+                      <div key={t.id} style={{ fontSize: 8, color: sec.ct, lineHeight: 1.35, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
                     ))}
                   </div>
-                )}
+                ))}
 
+                {/* Weight on Fridays */}
                 {showWt && wTarget && (
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 'auto' }} onClick={e => e.stopPropagation()}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 'auto', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
                     <span style={{ fontSize: 8, fontWeight: 700, color: '#4A8C40' }}>Wt:{wTarget.target_weight}kg</span>
                     {editingWeight === ds ? (
                       <input autoFocus type="number" step="0.1" value={weightVal}
