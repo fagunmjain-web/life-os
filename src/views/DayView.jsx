@@ -1,0 +1,83 @@
+import { useState } from 'react'
+import { toDateStr } from '../utils.js'
+import Section from '../components/Section.jsx'
+
+export default function DayView({
+  currentDate, getTasksForDate, isCompleted, getEventsForDate,
+  toggleCompletion, deleteTask, deleteEvent, onEditTask, onAddTask, onAddEvent, onEditEvent, sections,
+}) {
+  const dateStr = toDateStr(currentDate)
+  const dayTasks = getTasksForDate(currentDate)
+  const dayEvents = getEventsForDate(currentDate)
+  const singleDayEvents = dayEvents.filter(e => !e.end_date || e.start_date === dateStr)
+  const [tappedEvent, setTappedEvent] = useState(null)
+
+  const tasksBySection = {}
+  sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
+
+  return (
+    <div style={{ paddingTop: 10 }}>
+      <div style={{ background: '#fff', borderRadius: 16, padding: '18px 20px', border: '1px solid #EBEBEB' }}>
+
+        {/* Event badges - left aligned */}
+        {(singleDayEvents.length > 0 || true) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14, alignItems: 'center' }}>
+            {singleDayEvents.map(e => (
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span
+                  onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
+                  style={{
+                    background: e.event_type === 'celebration' ? '#E57373' : e.event_type === 'travel' ? '#FFE0B2' : '#5B8ED6',
+                    color: e.event_type === 'travel' ? '#4E2100' : '#fff',
+                    fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 10, cursor: 'pointer',
+                  }}>{e.title}</span>
+                {tappedEvent === e.id && (
+                  <div style={{ display: 'flex', gap: 3 }}>
+                    <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#E8F5E4','#2C4A24','#C8E6C0')}>✎</button>
+                    <button onClick={() => { deleteEvent(e.id); setTappedEvent(null) }} style={evActBtn('#FFEBEE','#C62828','#FFCDD2')}>✕</button>
+                  </div>
+                )}
+              </div>
+            ))}
+            <button onClick={() => onAddEvent(currentDate)} style={{
+              width: 28, height: 28, border: '1px solid #ddd', borderRadius: 8,
+              background: '#fff', cursor: 'pointer', fontSize: 16, color: '#aaa',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>+</button>
+          </div>
+        )}
+
+        {/* Sections 2 per row */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          {sections.map((sec, i) => {
+            const isLast = i === sections.length - 1
+            const isOdd = sections.length % 2 !== 0
+            return (
+              <div key={sec.key} style={isLast && isOdd ? { gridColumn: '1 / -1' } : {}}>
+                <Section
+                  sec={sec}
+                  tasks={tasksBySection[sec.key] || []}
+                  dateStr={dateStr}
+                  isCompleted={isCompleted}
+                  toggleCompletion={toggleCompletion}
+                  onEditTask={onEditTask}
+                  onDeleteTask={deleteTask}
+                  onAddTask={onAddTask}
+                />
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function evActBtn(bg, color, border) {
+  return {
+    width: 22, height: 22, borderRadius: 5,
+    border: `1px solid ${border}`, background: bg, color,
+    cursor: 'pointer', fontSize: 11,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  }
+}

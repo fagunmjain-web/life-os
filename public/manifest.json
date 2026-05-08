@@ -1,0 +1,9 @@
+{
+  "name": "Life OS",
+  "short_name": "Life OS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f5",
+  "theme_color": "#ffffff",
+  "icons": []
+}
