@@ -164,6 +164,23 @@ export default function App() {
     setEventModal(null)
   }
 
+  async function moveTask(task, targetDateStr) {
+    const dow = task.days_of_week
+    const isRecurring = task.is_recurring || (Array.isArray(dow) && dow.length > 0)
+    if (isRecurring) {
+      // Recurring → create a new one-off copy on the target date
+      const payload = { title: task.title, section: task.section, is_recurring: false, days_of_week: [], specific_date: targetDateStr, time_of_day: task.time_of_day }
+      const { data, error } = await supabase.from('tasks').insert(payload).select().single()
+      if (error) { console.error('[moveTask] insert error:', error); return }
+      if (data) setTasks(prev => [...prev, data])
+    } else {
+      // One-off → update specific_date
+      const { data, error } = await supabase.from('tasks').update({ specific_date: targetDateStr }).eq('id', task.id).select().single()
+      if (error) { console.error('[moveTask] update error:', error); return }
+      if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
+    }
+  }
+
   function getEventTypeStyle(key) {
     const et = eventTypes.find(e => e.key === key)
     if (et) return { bg: et.color, textColor: '#fff', lightBg: et.bg, labelColor: et.textColor }
@@ -268,7 +285,7 @@ export default function App() {
     onAddTask:   (sectionKey, date) => setTaskModal({ defaultSection: sectionKey, defaultDate: date }),
     onAddEvent:  (date) => setEventModal({ date }),
     onEditEvent: (event) => setEventModal({ event }),
-    navigate, activeView, setActiveView, getEventTypeStyle,
+    navigate, activeView, setActiveView, getEventTypeStyle, moveTask,
   }
 
   const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
@@ -300,82 +317,100 @@ export default function App() {
         <div onClick={() => { setHamOpen(false); setEditingSection(null); setEditingEventType(null); setNewEventType(null) }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 200 }}>
           <div onClick={e => e.stopPropagation()} style={{
-            position: 'absolute', top: 10, left: 10, width: 320, background: '#fff',
-            borderRadius: 16, padding: 20, boxShadow: '0 4px 24px rgba(0,0,0,0.15)', maxHeight: '85vh', overflowY: 'auto',
+            position: 'absolute', top: 10, left: 10, width: 480, maxWidth: 'calc(100vw - 20px)',
+            background: '#fff', borderRadius: 16, padding: 24,
+            boxShadow: '0 4px 24px rgba(0,0,0,0.15)', maxHeight: '88vh', overflowY: 'auto',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C' }}>Manage sections</span>
-              <span onClick={() => setHamOpen(false)} style={{ cursor: 'pointer', fontSize: 22, color: '#aaa', lineHeight: 1 }}>×</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <span style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C' }}>Manage</span>
+              <span onClick={() => setHamOpen(false)} style={{ cursor: 'pointer', fontSize: 24, color: '#aaa', lineHeight: 1 }}>×</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+              {/* Task sections */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Task sections</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10 }}>Task sections</div>
                 {sections.map(s => (
-                  <div key={s.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: 13, fontWeight: 600 }}>
+                  <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}>
+                    {/* Colour swatch — clicking opens native colour picker */}
+                    <label style={{ cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', position: 'relative' }}>
+                      <div style={{ width: 14, height: 14, borderRadius: 3, background: s.cb, border: '1px solid rgba(0,0,0,0.1)' }} />
+                      <input
+                        type="color"
+                        value={s.cb}
+                        onChange={e => setSections(prev => prev.map(sec => sec.key === s.key ? { ...sec, cb: e.target.value } : sec))}
+                        style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                        tabIndex={-1}
+                      />
+                    </label>
+                    {/* Section name — click text to edit inline */}
                     {editingSection === s.key ? (
                       <input autoFocus value={editingSectionName}
                         onChange={e => setEditingSectionName(e.target.value)}
                         onBlur={() => renameSection(s.key, editingSectionName)}
                         onKeyDown={e => e.key === 'Enter' && renameSection(s.key, editingSectionName)}
-                        style={{ fontSize: 13, color: s.cb, border: 'none', borderBottom: `1px solid ${s.cb}`, background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, width: '100%', marginRight: 4 }}
+                        style={{ fontSize: 14, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, flex: 1 }}
                       />
                     ) : (
-                      <span style={{ color: s.cb, flex: 1 }}>{s.label}</span>
+                      <span
+                        onClick={() => { setEditingSection(s.key); setEditingSectionName(s.label) }}
+                        style={{ color: '#2C2C2C', flex: 1, cursor: 'text', fontSize: 14, fontWeight: 600 }}
+                      >{s.label}</span>
                     )}
-                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                      <span onClick={() => { setEditingSection(s.key); setEditingSectionName(s.label) }} style={{ color: '#aaa', cursor: 'pointer', fontSize: 13 }}>✎</span>
-                      <span onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })} style={{ color: '#C62828', cursor: 'pointer', fontSize: 15 }}>×</span>
-                    </div>
+                    {/* Delete only — no pencil icon */}
+                    <span onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })} style={{ color: '#C62828', cursor: 'pointer', fontSize: 18, lineHeight: 1, flexShrink: 0 }}>×</span>
                   </div>
                 ))}
                 <div onClick={() => { setHamOpen(false); setSectionModal(true) }}
-                  style={{ fontSize: 12, color: '#aaa', cursor: 'pointer', padding: '5px 0', marginTop: 6, borderTop: '1px dashed #eee' }}>
-                  + Add new section
+                  style={{ fontSize: 13, color: '#aaa', cursor: 'pointer', padding: '8px 0 2px', marginTop: 4 }}>
+                  + Add section
                 </div>
               </div>
+
+              {/* Event types */}
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>Event types</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10 }}>Event types</div>
                 {eventTypes.map(et => (
-                  <div key={et.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', fontSize: 13, fontWeight: 600 }}>
+                  <div key={et.key} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #f5f5f5' }}>
+                    <div style={{ width: 14, height: 14, borderRadius: 3, background: et.color, flexShrink: 0, border: '1px solid rgba(0,0,0,0.1)' }} />
                     {editingEventType === et.key ? (
                       <input autoFocus value={editingEventTypeName}
                         onChange={e => setEditingEventTypeName(e.target.value)}
                         onBlur={() => renameEventType(et.key, editingEventTypeName)}
                         onKeyDown={e => e.key === 'Enter' && renameEventType(et.key, editingEventTypeName)}
-                        style={{ fontSize: 13, color: et.textColor, border: 'none', borderBottom: `1px solid ${et.color}`, background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, width: '100%', marginRight: 4 }}
+                        style={{ fontSize: 14, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', fontWeight: 600, flex: 1 }}
                       />
                     ) : (
-                      <span style={{ color: et.textColor, flex: 1 }}>{et.label}</span>
+                      <span
+                        onClick={() => { setEditingEventType(et.key); setEditingEventTypeName(et.label) }}
+                        style={{ color: '#2C2C2C', flex: 1, cursor: 'text', fontSize: 14, fontWeight: 600 }}
+                      >{et.label}</span>
                     )}
-                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                      <span onClick={() => { setEditingEventType(et.key); setEditingEventTypeName(et.label) }} style={{ color: '#aaa', cursor: 'pointer', fontSize: 13 }}>✎</span>
-                      <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })} style={{ color: '#C62828', cursor: 'pointer', fontSize: 15 }}>×</span>
-                    </div>
+                    <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })} style={{ color: '#C62828', cursor: 'pointer', fontSize: 18, lineHeight: 1, flexShrink: 0 }}>×</span>
                   </div>
                 ))}
                 {newEventType ? (
-                  <div style={{ marginTop: 8, padding: 8, background: '#f9f9f9', borderRadius: 8 }}>
+                  <div style={{ marginTop: 10, padding: 10, background: '#f9f9f9', borderRadius: 8 }}>
                     <input autoFocus placeholder="Type name" value={newEventType.name}
                       onChange={e => setNewEventType(prev => ({ ...prev, name: e.target.value }))}
                       onKeyDown={e => e.key === 'Enter' && addEventType()}
-                      style={{ width: '100%', fontSize: 12, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', marginBottom: 6 }}
+                      style={{ width: '100%', fontSize: 13, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', marginBottom: 8 }}
                     />
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
                       {ET_PRESET_COLORS.map((c, i) => (
                         <div key={i} onClick={() => setNewEventType(prev => ({ ...prev, colorIdx: i }))}
-                          style={{ width: 16, height: 16, borderRadius: 4, background: c.color, cursor: 'pointer', border: newEventType.colorIdx === i ? '2px solid #2C2C2C' : '2px solid transparent' }}
+                          style={{ width: 18, height: 18, borderRadius: 4, background: c.color, cursor: 'pointer', border: newEventType.colorIdx === i ? '2px solid #2C2C2C' : '2px solid transparent' }}
                         />
                       ))}
                     </div>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button onClick={addEventType} style={{ fontSize: 11, padding: '3px 8px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
-                      <button onClick={() => setNewEventType(null)} style={{ fontSize: 11, padding: '3px 8px', background: '#f0f0f0', color: '#888', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={addEventType} style={{ fontSize: 12, padding: '4px 10px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
+                      <button onClick={() => setNewEventType(null)} style={{ fontSize: 12, padding: '4px 10px', background: '#f0f0f0', color: '#888', border: 'none', borderRadius: 6, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                     </div>
                   </div>
                 ) : (
                   <div onClick={() => setNewEventType({ name: '', colorIdx: 0 })}
-                    style={{ fontSize: 12, color: '#aaa', cursor: 'pointer', padding: '5px 0', marginTop: 6, borderTop: '1px dashed #eee' }}>
-                    + Add new event type
+                    style={{ fontSize: 13, color: '#aaa', cursor: 'pointer', padding: '8px 0 2px', marginTop: 4 }}>
+                    + Add event type
                   </div>
                 )}
               </div>
@@ -406,9 +441,32 @@ export default function App() {
       )}
 
       {/* STICKY HEADER */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '10px 16px 8px' }}>
-        {/* Row 1 — 3-column grid for perfect centering */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: showWeight && isMobile ? 4 : 8 }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '8px 16px 8px' }}>
+        {/* Row 1 — nav tabs at the very top */}
+        <div style={{ display: 'flex', gap: 5, marginBottom: 8 }}>
+          {VIEWS.map(v => {
+            const isActive = activeView === v && v !== 'Today'
+            return (
+              <button key={v}
+                onClick={() => {
+                  if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') }
+                  else setActiveView(v)
+                }}
+                style={{
+                  flex: 1, padding: '7px 0', fontSize: 13, fontWeight: 600,
+                  border: 'none',
+                  background: isActive ? '#2C2C2C' : '#e8e8e8',
+                  borderRadius: 10, cursor: 'pointer',
+                  color: isActive ? '#fff' : '#777',
+                  transition: 'all .15s', fontFamily: 'inherit',
+                }}
+              >{v}</button>
+            )
+          })}
+        </div>
+
+        {/* Row 2 — hamburger / title / action buttons */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: showWeight && isMobile ? 4 : 0 }}>
           {/* Left: hamburger */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <button onClick={() => setHamOpen(true)} style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, padding: 4 }}>
@@ -417,13 +475,13 @@ export default function App() {
               <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
             </button>
           </div>
-          {/* Center: nav arrows + title — always perfectly centred */}
+          {/* Center: nav arrows + title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>‹</button>
             <div style={{ fontSize: 19, fontWeight: 600, color: '#2C2C2C', minWidth: 130, textAlign: 'center' }}>{getHeaderTitle()}</div>
             <button onClick={() => navigate(1)}  style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}>›</button>
           </div>
-          {/* Right: year-view shortcut buttons or weight widget */}
+          {/* Right: year-view buttons or weight widget */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 6 }}>
             {activeView === 'Year' && (
               <>
@@ -439,33 +497,10 @@ export default function App() {
 
         {/* Weight row — mobile Day+Friday only */}
         {showWeight && isMobile && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
             <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
           </div>
         )}
-
-        {/* Row 2 — individual pill tabs (no shared bar) */}
-        <div style={{ display: 'flex', gap: 5 }}>
-          {VIEWS.map(v => {
-            const isActive = activeView === v && v !== 'Today'
-            return (
-              <button key={v}
-                onClick={() => {
-                  if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') }
-                  else setActiveView(v)
-                }}
-                style={{
-                  flex: 1, padding: '8px 0', fontSize: 13, fontWeight: 600,
-                  border: 'none',
-                  background: isActive ? '#2C2C2C' : '#e8e8e8',
-                  borderRadius: 10, cursor: 'pointer',
-                  color: isActive ? '#fff' : '#777',
-                  transition: 'all .15s', fontFamily: 'inherit',
-                }}
-              >{v}</button>
-            )
-          })}
-        </div>
       </div>
 
       {loading ? (

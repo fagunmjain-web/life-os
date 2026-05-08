@@ -17,7 +17,7 @@ export default function YearView({
   }
 
   return (
-    <div style={{ paddingTop: 10, height: 'calc(100vh - 112px)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ paddingTop: 10, height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10, flex: 1, gridAutoRows: '1fr', overflow: 'auto' }}>
         {Array.from({ length: 12 }, (_, mi) => {
           const totalDays = getDaysInMonth(year, mi)

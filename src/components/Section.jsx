@@ -9,7 +9,13 @@ function Chevron({ open }) {
   )
 }
 
-export default function Section({ sec, tasks, dateStr, isCompleted, toggleCompletion, onEditTask, onDeleteTask, onAddTask, compact = false }) {
+export default function Section({
+  sec, tasks, dateStr, isCompleted, toggleCompletion,
+  onEditTask, onDeleteTask, onAddTask,
+  onDragTask,   // optional: (task) => void, enables drag on tasks
+  isPast,       // optional: true when this day is before today
+  compact = false,
+}) {
   const [open, setOpen] = useState(true)
   const [hoveredTask, setHoveredTask] = useState(null)
 
@@ -17,8 +23,17 @@ export default function Section({ sec, tasks, dateStr, isCompleted, toggleComple
   const fontSize = compact ? 12 : 16
   const taskFontSize = compact ? 12 : 16
 
+  // Section greyscale: only grey when past AND no incomplete tasks
+  const hasIncomplete = tasks.some(t => !isCompleted(t.id, dateStr))
+  const shouldGrey = isPast && !hasIncomplete
+
   return (
-    <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: compact ? 4 : 6 }}>
+    <div style={{
+      borderRadius: 12, overflow: 'hidden', marginBottom: compact ? 4 : 6,
+      filter: shouldGrey ? 'grayscale(0.85)' : 'none',
+      opacity: shouldGrey ? 0.55 : 1,
+      transition: 'filter .2s, opacity .2s',
+    }}>
       <div onClick={() => setOpen(o => !o)} style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: pad, cursor: 'pointer', fontSize, fontWeight: 700,
@@ -36,9 +51,18 @@ export default function Section({ sec, tasks, dateStr, isCompleted, toggleComple
           ) : tasks.map(task => (
             <div
               key={task.id}
+              draggable={!!onDragTask}
+              onDragStart={onDragTask ? (e) => {
+                e.dataTransfer.effectAllowed = 'move'
+                onDragTask(task)
+              } : undefined}
               onMouseEnter={() => setHoveredTask(task.id)}
               onMouseLeave={() => setHoveredTask(null)}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 0', borderBottom: '0.5px solid rgba(0,0,0,0.04)' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 0',
+                borderBottom: '0.5px solid rgba(0,0,0,0.04)',
+                cursor: onDragTask ? 'grab' : 'default',
+              }}
             >
               <div onClick={() => toggleCompletion(task.id, dateStr)} style={{
                 width: 14, height: 14, borderRadius: 4, border: `1.5px solid ${sec.cb}`,

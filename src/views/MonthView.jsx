@@ -54,7 +54,7 @@ export default function MonthView({
     })
     return Object.entries(counts).map(([key, count]) => {
       const sec = sections.find(s => s.key === key)
-      return sec ? { lightColor: sec.sb, darkColor: sec.cb, count } : null
+      return sec ? { accentColor: sec.cb, bgColor: sec.sb, count } : null
     }).filter(Boolean)
   }
 
@@ -71,7 +71,7 @@ export default function MonthView({
   const rangeBg = '#FFE0B2'
 
   return (
-    <div style={{ paddingTop: 10, height: 'calc(100vh - 112px)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ paddingTop: 10, height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ background: '#fff', borderRadius: 16, padding: '12px 16px 8px', border: '1px solid #EBEBEB', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Day-of-week headers */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4, flexShrink: 0 }}>
@@ -80,7 +80,7 @@ export default function MonthView({
           ))}
         </div>
 
-        {/* Calendar grid — fills remaining height */}
+        {/* Calendar grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, flex: 1, gridAutoRows: '1fr' }}>
           {Array.from({ length: firstDay }).map((_, i) => (
             <div key={`e${i}`} style={{ borderRadius: 8, opacity: .2 }} />
@@ -97,6 +97,7 @@ export default function MonthView({
             const wEntry = getWeightEntry(ds)
             const showWt = fridays.includes(day)
             const dots = getTaskDots(day)
+            const addOpen = openAddRow === day
 
             let bg = '#fff', br = '8px', border = '1px solid #f0f0f0'
             if (range === 'start') { bg = rangeBg; br = '8px 0 0 8px'; border = 'none' }
@@ -111,17 +112,32 @@ export default function MonthView({
                 filter: fullyDone ? 'grayscale(1)' : 'none',
                 opacity: fullyDone ? 0.55 : 1,
               }}>
+                {/* Day header row — + button with inline task/event buttons */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {overdue && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9A825' }} />}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+                    {overdue && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F9A825', flexShrink: 0 }} />}
+                    {/* + toggle button */}
                     <div
-                      onClick={() => setOpenAddRow(openAddRow === day ? null : day)}
-                      style={{ width: 14, height: 14, border: '1px solid #ccc', borderRadius: 3, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#aaa', cursor: 'pointer', flexShrink: 0 }}
+                      onClick={() => setOpenAddRow(addOpen ? null : day)}
+                      style={{ width: 13, height: 13, border: '1px solid #ccc', borderRadius: 3, background: addOpen ? '#2C2C2C' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: addOpen ? '#fff' : '#aaa', cursor: 'pointer', flexShrink: 0 }}
                     >+</div>
+                    {/* Inline add buttons appear next to the + */}
+                    {addOpen && (
+                      <div style={{ display: 'flex', gap: 2, flex: 1, minWidth: 0 }}>
+                        <div
+                          onClick={() => { onAddTask(null, ds); setOpenAddRow(null) }}
+                          style={{ fontSize: 6, padding: '1px 3px', background: '#2C2C2C', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
+                        >Task</div>
+                        <div
+                          onClick={() => { onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }}
+                          style={{ fontSize: 6, padding: '1px 3px', background: '#5B8ED6', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}
+                        >Event</div>
+                      </div>
+                    )}
                   </div>
                   <span
                     onClick={() => goToDay(day)}
-                    style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer' }}
+                    style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}
                   >{day}</span>
                 </div>
 
@@ -136,15 +152,16 @@ export default function MonthView({
                   )
                 })}
 
-                {/* Task dots — solid fill, no border */}
+                {/* Task dots — outlined circle: white bg, colored border, colored count */}
                 {dots.length > 0 && (
                   <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                     {dots.map((dot, i) => (
                       <div key={i} style={{
                         width: 14, height: 14, borderRadius: '50%',
-                        background: dot.lightColor,
+                        background: '#fff',
+                        border: `1.5px solid ${dot.accentColor}`,
                         display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', fontSize: 7, fontWeight: 700, color: dot.darkColor,
+                        justifyContent: 'center', fontSize: 7, fontWeight: 700, color: dot.accentColor,
                       }}>{dot.count}</div>
                     ))}
                   </div>
@@ -167,13 +184,6 @@ export default function MonthView({
                     )}
                   </div>
                 )}
-
-                {openAddRow === day && (
-                  <div style={{ display: 'flex', gap: 3, marginTop: 2 }}>
-                    <div onClick={() => { onAddTask(null, ds); setOpenAddRow(null) }} style={addBtn}>+ Task</div>
-                    <div onClick={() => { onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }} style={addBtn}>+ Event</div>
-                  </div>
-                )}
               </div>
             )
           })}
@@ -181,10 +191,4 @@ export default function MonthView({
       </div>
     </div>
   )
-}
-
-const addBtn = {
-  flex: 1, fontSize: 7, padding: '2px 3px', border: '1px solid #ccc',
-  borderRadius: 4, background: '#f9f9f9', color: '#666', cursor: 'pointer',
-  textAlign: 'center', fontWeight: 600,
 }
