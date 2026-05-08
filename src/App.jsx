@@ -254,7 +254,7 @@ export default function App() {
   const dateStr    = toDateStr(currentDate)
   const weightTarget = getWeightTarget(dateStr)
   const weightEntry  = getWeightEntry(dateStr)
-  const showWeight = activeView === 'Day' && isFriday(currentDate) && weightTarget
+  const showWeight = activeView === 'Day' && isFriday(currentDate) && !!weightTarget
 
   function getHeaderTitle() {
     if (activeView === 'Day') {
@@ -449,19 +449,17 @@ export default function App() {
         </div>
       )}
 
-      {/* STICKY HEADER — single row */}
+      {/* STICKY HEADER — single row, date absolutely centred */}
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#f7f7f5', padding: '8px 16px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 8 }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 38 }}>
 
-          {/* Left: hamburger */}
-          <button onClick={() => setHamOpen(true)} style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, padding: 4, flexShrink: 0 }}>
-            <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
-            <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
-            <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
-          </button>
-
-          {/* Centre: nav tabs — each an individual rounded pill */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 5 }}>
+          {/* Left: hamburger + nav tabs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, zIndex: 1 }}>
+            <button onClick={() => setHamOpen(true)} style={{ width: 32, height: 32, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5, padding: 4, flexShrink: 0 }}>
+              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+              <span style={{ display: 'block', height: 2, background: '#555', borderRadius: 1, width: 20 }} />
+            </button>
             {VIEWS.map(v => {
               const isActive = activeView === v && v !== 'Today'
               return (
@@ -471,7 +469,7 @@ export default function App() {
                     else setActiveView(v)
                   }}
                   style={{
-                    padding: '7px 11px', fontSize: 13, fontWeight: 600,
+                    padding: '6px 10px', fontSize: 13, fontWeight: 600,
                     border: 'none',
                     background: isActive ? '#2C2C2C' : '#e8e8e8',
                     borderRadius: 10, cursor: 'pointer',
@@ -483,29 +481,26 @@ export default function App() {
             })}
           </div>
 
-          {/* Right: year buttons / weight widget / ‹ date › */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            {activeView === 'Year' && (
+          {/* Centre: ‹ date › — absolutely centred in the row */}
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
+            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>‹</button>
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#2C2C2C', minWidth: 100, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
+            <button onClick={() => navigate(1)}  style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>›</button>
+          </div>
+
+          {/* Right: weight widget (Fri day view) or year +Task/+Event */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, zIndex: 1 }}>
+            {showWeight && (
+              <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
+            )}
+            {activeView === 'Year' && !showWeight && (
               <>
                 <button onClick={() => setTaskModal({ defaultSection: null })} style={yearBtn}>+ Task</button>
                 <button onClick={() => setEventModal({ date: new Date() })}    style={yearBtn}>+ Event</button>
               </>
             )}
-            {showWeight && !isMobile && (
-              <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
-            )}
-            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>‹</button>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#2C2C2C', minWidth: 100, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
-            <button onClick={() => navigate(1)}  style={{ background: 'none', border: 'none', fontSize: 26, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}>›</button>
           </div>
         </div>
-
-        {/* Weight — mobile Day+Friday only, below the single row */}
-        {showWeight && isMobile && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
-            <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
-          </div>
-        )}
       </div>
 
       {loading ? (
