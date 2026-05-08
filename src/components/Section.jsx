@@ -74,7 +74,7 @@ export default function Section({
                 fontSize: taskFontSize, color: sec.ct, flex: 1, lineHeight: 1.4,
                 textDecoration: isCompleted(task.id, dateStr) ? 'line-through' : 'none',
                 opacity: isCompleted(task.id, dateStr) ? .4 : 1,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset',
               }}>{task.title}</span>
               {task.time_of_day && (
                 <span style={{ fontSize: 11, color: sec.cb, opacity: .7, flexShrink: 0 }}>{task.time_of_day}</span>

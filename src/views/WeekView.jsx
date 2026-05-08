@@ -34,7 +34,7 @@ export default function WeekView({
 
   return (
     <div style={{ paddingTop: 10 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(7, 1fr)', gap: 8 }}>
+      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: 'repeat(7, minmax(140px, 1fr))', gap: 8, overflowX: isMobile ? undefined : 'auto' }}>
         {days.map(day => {
           const dateStr = toDateStr(day)
           const dayTasks = getTasksForDate(day)

@@ -54,6 +54,21 @@ export default function App() {
 
   useEffect(() => { loadAll() }, [])
 
+  // Keyboard shortcuts: t=today, d/w/m/y=views — skip when focused on inputs
+  useEffect(() => {
+    function onKey(e) {
+      const tag = document.activeElement?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return
+      if (e.key === 't') { setCurrentDate(new Date()); setActiveView('Day') }
+      if (e.key === 'd') setActiveView('Day')
+      if (e.key === 'w') setActiveView('Week')
+      if (e.key === 'm') setActiveView('Month')
+      if (e.key === 'y') setActiveView('Year')
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
   async function loadAll() {
     setLoading(true)
     const [t, c, e, wt, we] = await Promise.all([
@@ -65,7 +80,21 @@ export default function App() {
     ])
     setTasks(t.data || [])
     setCompletions(c.data || [])
-    setEvents(e.data || [])
+    // Expand repeat_annually celebrations into this year's instances in memory
+    const allEvents = e.data || []
+    const thisYear = new Date().getFullYear()
+    const expanded = [...allEvents]
+    allEvents.forEach(ev => {
+      if (!ev.repeat_annually) return
+      const original = new Date(ev.start_date + 'T00:00:00')
+      const thisYearDate = `${thisYear}-${String(original.getMonth() + 1).padStart(2, '0')}-${String(original.getDate()).padStart(2, '0')}`
+      // Only add if no event with the same title already falls on this year's date
+      const alreadyExists = allEvents.some(x => x.title === ev.title && x.start_date === thisYearDate)
+      if (!alreadyExists && thisYearDate !== ev.start_date) {
+        expanded.push({ ...ev, id: `virtual_${ev.id}_${thisYear}`, start_date: thisYearDate })
+      }
+    })
+    setEvents(expanded)
     setWeightTargets(wt.data || [])
     setWeightEntries(we.data || [])
     setLoading(false)
@@ -141,9 +170,8 @@ export default function App() {
   }
 
   async function saveEvent(eventData) {
-    // Pick only known events table columns (start_time may not exist yet)
-    const { title, event_type, start_date, end_date } = eventData
-    const payload = { title, event_type, start_date, end_date }
+    const { title, event_type, start_date, end_date, repeat_annually } = eventData
+    const payload = { title, event_type, start_date, end_date, repeat_annually: repeat_annually ?? false }
     const { data, error } = await supabase.from('events').insert(payload).select().single()
     if (error) { console.error('[saveEvent] insert error:', error); return }
     if (data) setEvents(prev => [...prev, data])
@@ -156,8 +184,8 @@ export default function App() {
   }
 
   async function updateEvent(eventData) {
-    const { id, title, event_type, start_date, end_date } = eventData
-    const payload = { title, event_type, start_date, end_date }
+    const { id, title, event_type, start_date, end_date, repeat_annually } = eventData
+    const payload = { title, event_type, start_date, end_date, repeat_annually: repeat_annually ?? false }
     const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().single()
     if (error) { console.error('[updateEvent] update error:', error); return }
     if (data) setEvents(prev => prev.map(e => e.id === data.id ? data : e))

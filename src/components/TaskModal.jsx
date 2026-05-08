@@ -6,6 +6,11 @@ const DAY_LABELS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 export default function TaskModal({ task, defaultSection, defaultDate, sections, onSave, onClose }) {
   const [title, setTitle] = useState(task?.title || '')
+
+  function handleTitleChange(e) {
+    const v = e.target.value
+    setTitle(v.length === 1 ? v.toUpperCase() : v)
+  }
   const [section, setSection] = useState(task?.section || defaultSection || sections[0]?.key || 'health')
   const [isRecurring, setIsRecurring] = useState(
     task?.is_recurring !== undefined ? task.is_recurring : (defaultDate ? false : true)
@@ -41,7 +46,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, sections,
         </div>
 
         <Field label="Task name">
-          <input autoFocus value={title} onChange={e => setTitle(e.target.value)}
+          <input autoFocus value={title} onChange={handleTitleChange}
             placeholder="e.g. Call dentist" style={input} />
         </Field>
 

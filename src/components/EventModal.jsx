@@ -18,6 +18,14 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
   const [startDate, setStartDate] = useState(initialDate)
   const [endDate, setEndDate] = useState(event?.end_date || '')
   const [timeOfDay, setTimeOfDay] = useState(event?.start_time || '')
+  const [repeatAnnually, setRepeatAnnually] = useState(
+    event ? (event.repeat_annually ?? false) : true
+  )
+
+  function handleTitleChange(e) {
+    const v = e.target.value
+    setTitle(v.length === 1 ? v.toUpperCase() : v)
+  }
 
   function handleSave() {
     if (!title.trim()) return
@@ -28,6 +36,7 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
       start_date: startDate,
       end_date: (selectedType?.key === 'travel' || type === 'travel') && endDate ? endDate : null,
       start_time: timeOfDay || null,
+      repeat_annually: type === 'celebration' ? repeatAnnually : false,
     }
     if (isEdit) onUpdate({ ...data, id: event.id })
     else onSave(data)
@@ -42,7 +51,7 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
 
         <div style={{ marginBottom: 14 }}>
           <div style={fieldLabel}>Event name</div>
-          <input autoFocus value={title} onChange={e => setTitle(e.target.value)}
+          <input autoFocus value={title} onChange={handleTitleChange}
             placeholder="e.g. Dentist appointment" style={input} />
         </div>
 
@@ -65,6 +74,26 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
             ))}
           </div>
         </div>
+
+        {type === 'celebration' && (
+          <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#2C2C2C' }}>Repeat annually</span>
+            <div
+              onClick={() => setRepeatAnnually(v => !v)}
+              style={{
+                width: 42, height: 24, borderRadius: 12, cursor: 'pointer', position: 'relative',
+                background: repeatAnnually ? '#E57373' : '#ddd',
+                transition: 'background .2s',
+              }}
+            >
+              <div style={{
+                position: 'absolute', top: 3, left: repeatAnnually ? 21 : 3,
+                width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left .2s',
+              }} />
+            </div>
+          </div>
+        )}
 
         {type === 'travel' && (
           <div style={{ marginBottom: 14 }}>
