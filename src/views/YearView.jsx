@@ -36,11 +36,21 @@ export default function YearView({
 
           const dayEvents = {}
           events.forEach(e => {
-            const ds = e.start_date
-            if (!e.end_date && ds.startsWith(`${year}-${String(mi+1).padStart(2,'0')}`)) {
-              const d = parseInt(ds.split('-')[2])
-              if (!dayEvents[d]) dayEvents[d] = []
-              dayEvents[d].push(e)
+            if (e.end_date && e.event_type === 'travel') {
+              for (let d = 1; d <= totalDays; d++) {
+                const ds = `${year}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+                if (ds >= e.start_date && ds <= e.end_date) {
+                  if (!dayEvents[d]) dayEvents[d] = []
+                  dayEvents[d].push(e)
+                }
+              }
+            } else {
+              const ds = e.start_date
+              if (!e.end_date && ds.startsWith(`${year}-${String(mi+1).padStart(2,'0')}`)) {
+                const d = parseInt(ds.split('-')[2])
+                if (!dayEvents[d]) dayEvents[d] = []
+                dayEvents[d].push(e)
+              }
             }
           })
 
@@ -59,11 +69,11 @@ export default function YearView({
               onClick={() => goToMonth(mi)}
               style={{ background: '#fff', borderRadius: 12, padding: 10, border: '1px solid #EBEBEB', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
             >
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>{MONTH_NAMES[mi]}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>{MONTH_NAMES[mi]}</div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 3 }}>
                 {['M','T','W','T','F','S','S'].map((d,i) => (
-                  <div key={i} style={{ fontSize: 7, color: '#ccc', textAlign: 'center', fontWeight: 600 }}>{d}</div>
+                  <div key={i} style={{ fontSize: 10, color: '#ccc', textAlign: 'center', fontWeight: 600 }}>{d}</div>
                 ))}
               </div>
 
@@ -82,19 +92,22 @@ export default function YearView({
                   if (range === 'start') { bg = '#FFE0B2'; br = '2px 0 0 2px' }
                   if (range === 'mid')   { bg = '#FFE0B2'; br = '0' }
                   if (range === 'end')   { bg = '#FFE0B2'; br = '0 2px 2px 0' }
-                  if (today) border = '0.5px solid #aaa'
 
                   return (
-                    <div key={d} style={{ background: bg, borderRadius: br, border, minHeight: 12, padding: '1px', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                    <div key={d} style={{ background: bg, borderRadius: br, border, minHeight: 14, padding: '1px', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
-                        {overdue && <div style={{ width: 3, height: 3, borderRadius: '50%', background: '#F9A825' }} />}
-                        <span style={{ fontSize: 7, fontWeight: 600, color: range ? '#4E2100' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
+                        {overdue && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#F9A825' }} />}
+                        {today ? (
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#5B8ED6', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, lineHeight: 1 }}>{d}</div>
+                        ) : (
+                          <span style={{ fontSize: 12, fontWeight: 600, color: range ? '#4E2100' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
+                        )}
                       </div>
                       {ev.map(e => {
                         const s = getEventTypeStyle(e.event_type)
                         return (
                           <div key={e.id} style={{
-                            fontSize: 5, fontWeight: 600, padding: '0 2px', borderRadius: 1,
+                            fontSize: 9, fontWeight: 600, padding: '0 2px', borderRadius: 1,
                             background: s.bg, color: s.textColor,
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
                           }}>{e.title}</div>

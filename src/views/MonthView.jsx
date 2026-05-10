@@ -41,7 +41,10 @@ export default function MonthView({
 
   function getDayEvents(day) {
     const ds = getDateStr(day)
-    return events.filter(e => e.start_date === ds && !e.end_date)
+    return events.filter(e => {
+      if (e.end_date && e.event_type === 'travel') return ds >= e.start_date && ds <= e.end_date
+      return e.start_date === ds && !e.end_date
+    })
   }
 
   function getTaskBoxes(day) {
