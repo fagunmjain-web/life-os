@@ -88,10 +88,10 @@ export default function YearView({
                   const today = isToday(new Date(year, mi, d))
                   const overdue = hasOverdue(new Date(year, mi, d))
 
-                  let bg = 'transparent', br = '2px', border = 'none'
-                  if (range === 'start') { bg = '#FFE0B2'; br = '2px 0 0 2px' }
-                  if (range === 'mid')   { bg = '#FFE0B2'; br = '0' }
-                  if (range === 'end')   { bg = '#FFE0B2'; br = '0 2px 2px 0' }
+                  let bg = '#fff', br = '2px', border = '1px solid #f0f0f0'
+                  if (range === 'start') { bg = '#FFE0B2'; br = '2px 0 0 2px'; border = '1px solid #f0f0f0' }
+                  if (range === 'mid')   { bg = '#FFE0B2'; br = '0';            border = '1px solid #f0f0f0' }
+                  if (range === 'end')   { bg = '#FFE0B2'; br = '0 2px 2px 0'; border = '1px solid #f0f0f0' }
 
                   const isHovered = hoveredInfo?.mi === mi && hoveredInfo?.d === d
 
