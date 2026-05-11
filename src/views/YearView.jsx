@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { isToday, getDaysInMonth, getFirstDayOfMonth, MONTH_NAMES } from '../utils.js'
-import { useIsMobile } from '../hooks/useIsMobile.js'
 
 export default function YearView({
   currentDate, setCurrentDate, setActiveView,
   events, weightTargets, weightEntries,
   hasOverdue, getEventTypeStyle,
 }) {
-  const isMobile = useIsMobile()
   const year = currentDate.getFullYear()
   const [hoveredInfo, setHoveredInfo] = useState(null) // { mi, d }
 
@@ -19,8 +17,8 @@ export default function YearView({
   }
 
   return (
-    <div style={{ paddingTop: 10, height: 'calc(100vh - 130px)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)', gap: 10, flex: 1, gridAutoRows: '1fr', overflow: 'auto' }}>
+    <div style={{ paddingTop: 10, height: 'calc(100vh - 140px)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: 'repeat(4, 1fr)', gap: 10, flex: 1, overflow: 'hidden' }}>
         {Array.from({ length: 12 }, (_, mi) => {
           const totalDays = getDaysInMonth(year, mi)
           const firstDay = getFirstDayOfMonth(year, mi)
@@ -69,7 +67,7 @@ export default function YearView({
             <div
               key={mi}
               onClick={() => goToMonth(mi)}
-              style={{ background: '#fff', borderRadius: 12, padding: 10, border: '1px solid #EBEBEB', cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
+              style={{ background: '#fff', borderRadius: 12, padding: 10, border: '1px solid #EBEBEB', cursor: 'pointer', display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}
             >
               <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>{MONTH_NAMES[mi]}</div>
 
@@ -126,9 +124,9 @@ export default function YearView({
                         const s = getEventTypeStyle(e.event_type)
                         return (
                           <div key={e.id} style={{
-                            fontSize: 9, fontWeight: 600, padding: '0 2px', borderRadius: 1,
+                            fontSize: 7, fontWeight: 600, padding: '0 1px', borderRadius: 1,
                             background: s.bg, color: s.textColor,
-                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', lineHeight: 1.2,
                           }}>{e.title}</div>
                         )
                       })}
