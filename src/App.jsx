@@ -174,8 +174,11 @@ export default function App() {
   }
 
   async function saveEvent(eventData) {
-    const { title, event_type, start_date, end_date, repeat_annually } = eventData
-    const payload = { title, event_type, start_date, end_date, repeat_annually: repeat_annually ?? false }
+    // Only send columns that exist in the events table.
+    // Add event_time once: ALTER TABLE events ADD COLUMN IF NOT EXISTS event_time text;
+    const { title, event_type, start_date, end_date, event_time } = eventData
+    const payload = { title, event_type, start_date, end_date }
+    if (event_time) payload.event_time = event_time
     const { data, error } = await supabase.from('events').insert(payload).select().single()
     if (error) { console.error('[saveEvent] insert error:', error); return }
     if (data) setEvents(prev => [...prev, data])
@@ -188,8 +191,9 @@ export default function App() {
   }
 
   async function updateEvent(eventData) {
-    const { id, title, event_type, start_date, end_date, repeat_annually } = eventData
-    const payload = { title, event_type, start_date, end_date, repeat_annually: repeat_annually ?? false }
+    const { id, title, event_type, start_date, end_date, event_time } = eventData
+    const payload = { title, event_type, start_date, end_date }
+    if (event_time) payload.event_time = event_time
     const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().single()
     if (error) { console.error('[updateEvent] update error:', error); return }
     if (data) setEvents(prev => prev.map(e => e.id === data.id ? data : e))

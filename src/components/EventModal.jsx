@@ -17,7 +17,7 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
   const [type, setType] = useState(event?.event_type || types[0]?.key || 'important')
   const [startDate, setStartDate] = useState(initialDate)
   const [endDate, setEndDate] = useState(event?.end_date || '')
-  const [timeOfDay, setTimeOfDay] = useState(event?.start_time || '')
+  const [timeOfDay, setTimeOfDay] = useState(event?.event_time || '')
   const [repeatAnnually, setRepeatAnnually] = useState(
     event ? (event.repeat_annually ?? false) : true
   )
@@ -35,8 +35,7 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
       event_type: type,
       start_date: startDate,
       end_date: (selectedType?.key === 'travel' || type === 'travel') && endDate ? endDate : null,
-      start_time: timeOfDay || null,
-      repeat_annually: type === 'celebration' ? repeatAnnually : false,
+      event_time: timeOfDay || null,
     }
     if (isEdit) onUpdate({ ...data, id: event.id })
     else onSave(data)
