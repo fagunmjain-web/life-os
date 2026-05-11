@@ -20,6 +20,10 @@ export default function MonthView({
   const [openAddRow, setOpenAddRow] = useState(null)
   const [editingWeight, setEditingWeight] = useState(null)
   const [weightVal, setWeightVal] = useState('')
+  const [hoveredDay, setHoveredDay] = useState(null)
+
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`
 
   function getDateStr(day) {
     return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
@@ -86,7 +90,7 @@ export default function MonthView({
         gridTemplateColumns: 'repeat(7, 1fr)',
         gridTemplateRows: `repeat(${numRows}, 1fr)`,
         gap: 4,
-        height: `calc(100vh - 100px)`,
+        height: 'calc(100vh - 160px)',
         padding: '0 4px 4px',
       }}>
         {Array.from({ length: firstDay }).map((_, i) => (
@@ -105,6 +109,8 @@ export default function MonthView({
           const showWt = fridays.includes(day)
           const boxes = getTaskBoxes(day)
           const addOpen = openAddRow === day
+          const isPast = ds < todayStr
+          const expanded = hoveredDay === day
 
           let bg = '#fff', br = '8px', border = '1px solid #f0f0f0', shadow = 'none'
           if (range === 'start') { bg = rangeBg; br = '8px 0 0 8px'; border = 'none' }
@@ -113,40 +119,47 @@ export default function MonthView({
           if (today)             { border = 'none'; shadow = '0 2px 10px rgba(0,0,0,0.1)' }
 
           return (
-            <div key={day} style={{
-              background: bg, borderRadius: br, border, boxShadow: shadow,
-              padding: '4px 3px',
-              display: 'flex', flexDirection: 'column', gap: 2,
-              overflow: 'hidden',
-              filter: fullyDone ? 'grayscale(1)' : 'none',
-              opacity: fullyDone ? 0.55 : 1,
-            }}>
+            <div
+              key={day}
+              onMouseEnter={() => setHoveredDay(day)}
+              onMouseLeave={() => setHoveredDay(null)}
+              onClick={() => setHoveredDay(prev => prev === day ? null : day)}
+              style={{
+                background: bg, borderRadius: br, border, boxShadow: shadow,
+                padding: '4px 3px',
+                display: 'flex', flexDirection: 'column', gap: 2,
+                overflow: 'hidden',
+                filter: fullyDone ? 'grayscale(1)' : 'none',
+                opacity: fullyDone ? 0.55 : 1,
+                cursor: 'default',
+              }}
+            >
               {/* Header row: + toggle | date number */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
                   {overdue && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F9A825', flexShrink: 0 }} />}
                   <div
-                    onClick={() => setOpenAddRow(addOpen ? null : day)}
+                    onClick={e => { e.stopPropagation(); setOpenAddRow(addOpen ? null : day) }}
                     style={{ width: 13, height: 13, border: '1px solid #ccc', borderRadius: 3, background: addOpen ? '#2C2C2C' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: addOpen ? '#fff' : '#aaa', cursor: 'pointer', flexShrink: 0 }}
                   >+</div>
                   {addOpen && (
                     <div style={{ display: 'flex', gap: 2, flex: 1, minWidth: 0 }}>
-                      <div onClick={() => { onAddTask(null, ds); setOpenAddRow(null) }}
+                      <div onClick={e => { e.stopPropagation(); onAddTask(null, ds); setOpenAddRow(null) }}
                         style={{ fontSize: 6, padding: '1px 3px', background: '#2C2C2C', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Task</div>
-                      <div onClick={() => { onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }}
+                      <div onClick={e => { e.stopPropagation(); onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }}
                         style={{ fontSize: 6, padding: '1px 3px', background: '#5B8ED6', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Event</div>
                     </div>
                   )}
                 </div>
                 {today ? (
-                  <div onClick={() => goToDay(day)} style={{
+                  <div onClick={e => { e.stopPropagation(); goToDay(day) }} style={{
                     width: 22, height: 22, borderRadius: '50%',
                     background: '#5B8ED6', color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
                   }}>{day}</div>
                 ) : (
-                  <span onClick={() => goToDay(day)} style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}>{day}</span>
+                  <span onClick={e => { e.stopPropagation(); goToDay(day) }} style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}>{day}</span>
                 )}
               </div>
 
@@ -165,11 +178,14 @@ export default function MonthView({
 
                 {boxes.map(({ sec, tasks }) => (
                   <div key={sec.key} style={{
-                    background: sec.sb, borderLeft: `3px solid ${sec.cb}`,
-                    borderRadius: 4, padding: '2px 4px', flexShrink: 0,
+                    background: sec.sb, borderRadius: 6, padding: '4px 8px', flexShrink: 0,
+                    width: '100%', boxSizing: 'border-box',
                   }}>
-                    {tasks.map(t => (
-                      <div key={t.id} style={{ fontSize: 8, color: sec.ct, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+                    <div style={{ fontSize: 8, fontWeight: 700, color: sec.ct }}>
+                      {isPast ? `${tasks.length} pending` : `${tasks.length} tasks`}
+                    </div>
+                    {expanded && tasks.map(t => (
+                      <div key={t.id} style={{ fontSize: 7, color: sec.ct, lineHeight: 1.4, marginTop: 1 }}>{t.title}</div>
                     ))}
                   </div>
                 ))}

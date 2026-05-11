@@ -125,15 +125,19 @@ export default function App() {
   async function saveWeight(dateStr, weight) {
     const existing = weightEntries.find(w => w.entry_date === dateStr)
     if (existing) {
-      await supabase.from('weight_entries').update({ actual_weight: weight }).eq('id', existing.id)
+      // Optimistic update — all views reflect the new value immediately
       setWeightEntries(prev => prev.map(w => w.entry_date === dateStr ? { ...w, actual_weight: weight } : w))
+      await supabase.from('weight_entries').update({ actual_weight: weight }).eq('id', existing.id)
     } else {
+      const tempId = `temp_${Date.now()}`
+      setWeightEntries(prev => [...prev, { id: tempId, entry_date: dateStr, actual_weight: weight }])
       const { data } = await supabase
         .from('weight_entries')
         .insert({ entry_date: dateStr, actual_weight: weight })
         .select()
         .single()
-      if (data) setWeightEntries(prev => [...prev, data])
+      if (data) setWeightEntries(prev => prev.map(w => w.id === tempId ? data : w))
+      else setWeightEntries(prev => prev.filter(w => w.id !== tempId))
     }
   }
 

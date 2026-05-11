@@ -46,7 +46,7 @@ export default function WeekView({
           const isPast = dateStr < todayStr
           const tasksBySection = {}
           sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
-          const singleDayEvents = dayEvents.filter(e => !e.end_date || e.start_date === dateStr)
+          const singleDayEvents = dayEvents
           const isDropTarget = dragOver === dateStr
 
           return (

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { isToday, getDaysInMonth, getFirstDayOfMonth, MONTH_NAMES } from '../utils.js'
 import { useIsMobile } from '../hooks/useIsMobile.js'
 
@@ -8,6 +9,7 @@ export default function YearView({
 }) {
   const isMobile = useIsMobile()
   const year = currentDate.getFullYear()
+  const [hoveredInfo, setHoveredInfo] = useState(null) // { mi, d }
 
   function getWeightTarget(ds) { return weightTargets.find(w => w.target_date === ds) }
 
@@ -93,8 +95,25 @@ export default function YearView({
                   if (range === 'mid')   { bg = '#FFE0B2'; br = '0' }
                   if (range === 'end')   { bg = '#FFE0B2'; br = '0 2px 2px 0' }
 
+                  const isHovered = hoveredInfo?.mi === mi && hoveredInfo?.d === d
+
                   return (
-                    <div key={d} style={{ background: bg, borderRadius: br, border, minHeight: 14, padding: '1px', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                    <div key={d}
+                      onMouseEnter={() => ev.length > 0 && setHoveredInfo({ mi, d })}
+                      onMouseLeave={() => setHoveredInfo(null)}
+                      style={{ position: 'relative', background: bg, borderRadius: br, border, minHeight: 14, padding: '1px', overflow: 'visible', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}
+                    >
+                      {isHovered && ev.length > 0 && (
+                        <div style={{
+                          position: 'absolute', zIndex: 100,
+                          bottom: 'calc(100% + 3px)', left: '50%', transform: 'translateX(-50%)',
+                          background: '#2C2C2C', color: '#fff', fontSize: 10, borderRadius: 6,
+                          padding: '4px 8px', whiteSpace: 'nowrap', pointerEvents: 'none',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        }}>
+                          {ev.map(e => e.title).join(' · ')}
+                        </div>
+                      )}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
                         {overdue && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#F9A825' }} />}
                         {today ? (
