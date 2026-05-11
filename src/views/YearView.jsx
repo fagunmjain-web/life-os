@@ -35,18 +35,19 @@ export default function YearView({
           })
 
           const dayEvents = {}
+          const monthPrefix = `${year}-${String(mi+1).padStart(2,'0')}`
+          const monthEnd = `${monthPrefix}-${String(totalDays).padStart(2,'0')}`
           events.forEach(e => {
             if (e.end_date && e.event_type === 'travel') {
-              for (let d = 1; d <= totalDays; d++) {
-                const ds = `${year}-${String(mi+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`
-                if (ds >= e.start_date && ds <= e.end_date) {
-                  if (!dayEvents[d]) dayEvents[d] = []
-                  dayEvents[d].push(e)
-                }
-              }
+              // Only show title on the first day of the event visible in this month
+              if (e.end_date < `${monthPrefix}-01` || e.start_date > monthEnd) return
+              const firstVisible = e.start_date >= `${monthPrefix}-01` ? e.start_date : `${monthPrefix}-01`
+              const d = parseInt(firstVisible.split('-')[2])
+              if (!dayEvents[d]) dayEvents[d] = []
+              dayEvents[d].push(e)
             } else {
               const ds = e.start_date
-              if (!e.end_date && ds.startsWith(`${year}-${String(mi+1).padStart(2,'0')}`)) {
+              if (!e.end_date && ds.startsWith(monthPrefix)) {
                 const d = parseInt(ds.split('-')[2])
                 if (!dayEvents[d]) dayEvents[d] = []
                 dayEvents[d].push(e)
