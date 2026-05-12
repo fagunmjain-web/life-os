@@ -19,7 +19,7 @@ export default function WeekView({
   getWeightTarget, getWeightEntry,
   toggleCompletion, saveWeight, deleteTask, deleteEvent,
   onEditTask, onAddTask, onAddEvent, onEditEvent,
-  sections, getEventTypeStyle, moveTask, createEventFromTask,
+  sections, getEventTypeStyle, moveTask, createEventFromTask, updateTaskSection,
 }) {
   const isMobile = useIsMobile()
   const weekStart = startOfWeek(currentDate)
@@ -29,6 +29,7 @@ export default function WeekView({
   const [editingWeightDate, setEditingWeightDate] = useState(null)
   const [weightVal, setWeightVal]               = useState('')
   const [dragOver, setDragOver]                 = useState(null)
+  const [sectionDragOver, setSectionDragOver]   = useState(null) // 'dateStr_sectionKey'
   const [openSections, setOpenSections]         = useState({})
   const [hoveredTask, setHoveredTask]           = useState(null)
 
@@ -202,15 +203,28 @@ export default function WeekView({
                       opacity: secGrey ? 0.5 : 1,
                       transition: 'filter .2s, opacity .2s',
                     }}>
-                      {/* Section header */}
+                      {/* Section header — also a drop target for cross-section moves */}
                       <div
                         onClick={() => toggleSec(dateStr, sec.key)}
+                        onDragOver={e => { e.preventDefault(); e.stopPropagation(); setSectionDragOver(`${dateStr}_${sec.key}`) }}
+                        onDragLeave={() => setSectionDragOver(null)}
+                        onDrop={e => {
+                          e.preventDefault(); e.stopPropagation(); setSectionDragOver(null)
+                          try {
+                            const data = JSON.parse(e.dataTransfer.getData('application/json'))
+                            const task = tasks?.find(t => String(t.id) === String(data.taskId))
+                            if (task && task.section !== sec.key) updateTaskSection(task.id, sec.key)
+                            else if (task && data.fromDateStr && data.fromDateStr !== dateStr) moveTask(task, dateStr)
+                          } catch {}
+                        }}
                         style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                           padding: '3px 10px',
                           borderBottom: `1.5px solid ${sec.sh}`,
                           cursor: 'pointer', userSelect: 'none',
                           color: sec.cb,
+                          background: sectionDragOver === `${dateStr}_${sec.key}` ? sec.sb : 'transparent',
+                          transition: 'background .1s',
                         }}
                       >
                         <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{sec.label}</span>
@@ -224,7 +238,7 @@ export default function WeekView({
                               draggable
                               onDragStart={e => {
                                 e.dataTransfer.effectAllowed = 'move'
-                                e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.id, fromDateStr: dateStr }))
+                                e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.id, fromDateStr: dateStr, fromSection: sec.key }))
                               }}
                               onMouseEnter={() => setHoveredTask(task.id)}
                               onMouseLeave={() => setHoveredTask(null)}

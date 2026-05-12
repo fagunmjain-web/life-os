@@ -38,7 +38,7 @@ export default function Sidebar({
   open, isMobile, onClose,
   tasks, completions, sections, eventTypes,
   currentDate, toggleCompletion, createTask,
-  saveTask, deleteTask, onEditTask, onAddHabit,
+  saveTask, deleteTask, onEditTask, onAddHabit, moveTask,
   setDeleteConfirm, setSectionModal, setEventTypes,
 }) {
   const [panelOpen, setPanelOpen] = useState({ todo: true, habits: true, taskSections: false, eventTypes: false })
@@ -54,6 +54,9 @@ export default function Sidebar({
   const [habitView, setHabitView]       = useState('week')
   const [habitNavDate, setHabitNavDate] = useState(new Date())
   const [hoveredHabit, setHoveredHabit] = useState(null)
+
+  // To Do drop zone
+  const [todoDropOver, setTodoDropOver] = useState(false)
 
   // Event type add state
   const [newEventType, setNewEventType] = useState(null)
@@ -84,7 +87,7 @@ export default function Sidebar({
     return !t.specific_date && !t.is_recurring && !hasDays
   })
 
-  const recurring = tasks.filter(t => t.is_recurring === true)
+  const recurring = tasks.filter(t => t.is_habit === true)
 
   function toggle(key) { setPanelOpen(p => ({ ...p, [key]: !p[key] })) }
 
@@ -212,7 +215,21 @@ export default function Sidebar({
 
           {/* ── TO DO ─────────────────────────────────────────────────────── */}
           <Panel title="To Do" open={panelOpen.todo} onToggle={() => toggle('todo')}>
-            <div style={{ padding: '0 14px 12px' }}>
+            <div
+              style={{ padding: '0 14px 12px', background: todoDropOver ? '#f5f9f0' : 'transparent', transition: 'background .1s' }}
+              onDragOver={e => { e.preventDefault(); setTodoDropOver(true) }}
+              onDragLeave={() => setTodoDropOver(false)}
+              onDrop={e => {
+                e.preventDefault(); setTodoDropOver(false)
+                try {
+                  const data = JSON.parse(e.dataTransfer.getData('application/json'))
+                  if (data.taskId && !data.fromSidebar) {
+                    const task = tasks.find(t => String(t.id) === String(data.taskId))
+                    if (task && task.is_recurring !== true) moveTask(task, null)
+                  }
+                } catch {}
+              }}
+            >
               {unassigned.map(task => (
                 <div key={task.id}
                   draggable
@@ -318,7 +335,7 @@ export default function Sidebar({
                       {habitWeekDays.map((day, i) => {
                         const ds = toDateStr(day)
                         return (
-                          <div key={i} style={{ fontSize: 11, fontWeight: 700, color: ds === todayStr ? '#5B8ED6' : '#ccc', textAlign: 'center' }}>
+                          <div key={i} style={{ fontSize: 11, fontWeight: 700, color: ds === todayStr ? '#5B8ED6' : '#2C2C2C', textAlign: 'center' }}>
                             {DOW_LETTERS[i]}
                           </div>
                         )
@@ -374,7 +391,7 @@ export default function Sidebar({
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', columnGap: 2, marginBottom: 3 }}>
                       {DOW_LETTERS.map((l, i) => (
-                        <div key={i} style={{ fontSize: 10, fontWeight: 700, color: '#ccc', textAlign: 'center' }}>{l}</div>
+                        <div key={i} style={{ fontSize: 10, fontWeight: 700, color: '#2C2C2C', textAlign: 'center' }}>{l}</div>
                       ))}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', columnGap: 2, rowGap: 2 }}>
@@ -387,16 +404,24 @@ export default function Sidebar({
                         return (
                           <div key={day} style={{
                             height: 22, borderRadius: 3,
-                            background: pct !== null && pct > 0
-                              ? `linear-gradient(to top, rgba(74,140,64,0.65) ${pct*100}%, transparent ${pct*100}%)`
-                              : '#f5f2ee',
+                            position: 'relative', overflow: 'hidden',
+                            border: ds === todayStr ? '1px solid #5B8ED6' : '1px solid #e0dbd4',
+                            background: '#fff',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 9,
-                            color: ds === todayStr ? '#5B8ED6' : '#aaa',
-                            fontWeight: ds === todayStr ? 700 : 400,
-                            border: ds === todayStr ? '1px solid #5B8ED6' : '1px solid transparent',
                           }}>
-                            {day}
+                            {pct !== null && pct > 0 && (
+                              <div style={{
+                                position: 'absolute', bottom: 0, left: 0, right: 0,
+                                height: `${pct * 100}%`,
+                                background: 'rgba(74,140,64,0.45)',
+                                borderRadius: '0 0 2px 2px',
+                              }} />
+                            )}
+                            <span style={{
+                              position: 'relative', zIndex: 1,
+                              fontSize: 9, fontWeight: ds === todayStr ? 700 : 400,
+                              color: ds === todayStr ? '#5B8ED6' : '#2C2C2C',
+                            }}>{day}</span>
                           </div>
                         )
                       })}
@@ -428,7 +453,7 @@ export default function Sidebar({
                             ? `linear-gradient(to top, rgba(74,140,64,0.65) ${avgPct*100}%, #f0ece6 ${avgPct*100}%)`
                             : '#f0ece6',
                           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                          paddingBottom: 4, fontSize: 10, fontWeight: 600, color: '#888',
+                          paddingBottom: 4, fontSize: 10, fontWeight: 600, color: '#2C2C2C',
                         }}>
                           {MONTH_SHORT[m]}
                         </div>

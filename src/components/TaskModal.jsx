@@ -4,7 +4,7 @@ import TimePicker from './TimePicker.jsx'
 const DAY_OPTIONS = ['mon','tue','wed','thu','fri','sat','sun']
 const DAY_LABELS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
-export default function TaskModal({ task, defaultSection, defaultDate, defaultRecurring, sections, onSave, onClose }) {
+export default function TaskModal({ task, defaultSection, defaultDate, defaultRecurring, defaultIsHabit, sections, onSave, onClose }) {
   const [title, setTitle] = useState(task?.title || '')
 
   function handleTitleChange(e) {
@@ -15,6 +15,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
   const [isRecurring, setIsRecurring] = useState(
     task ? (task.is_recurring ?? false) : (defaultRecurring ?? false)
   )
+  const [isHabit] = useState(task?.is_habit ?? defaultIsHabit ?? false)
   const [days, setDays] = useState(task?.days_of_week || [])
   const [specificDate, setSpecificDate] = useState(task?.specific_date || defaultDate || '')
   const [endDate, setEndDate] = useState(task?.end_date || '')
@@ -32,11 +33,11 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
       title: title.trim(),
       section,
       is_recurring: isRecurring,
+      is_habit: isHabit,
       days_of_week: isRecurring ? days : [],
       specific_date: isRecurring ? null : specificDate || null,
       end_date: endDate || null,
       time_of_day: startTime || null,
-      end_time: endTime || null,
     })
   }
 
@@ -93,7 +94,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
             </Field>
           </>
         ) : (
-          <Field label="Date">
+          <Field label="Start date">
             <input type="date" value={specificDate} onChange={e => setSpecificDate(e.target.value)} style={input} />
           </Field>
         )}
@@ -109,21 +110,6 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
           ) : (
             <button onClick={() => setStartTime('09:00')} style={{ fontSize: 14, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
               + Start time
-            </button>
-          )}
-        </Field>
-
-        <Field label="End time (optional)">
-          {endTime ? (
-            <div>
-              <TimePicker value={endTime} onChange={setEndTime} />
-              <button onClick={() => setEndTime('')} style={{ marginTop: 8, fontSize: 13, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
-                Clear time
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setEndTime('10:00')} style={{ fontSize: 14, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              + End time
             </button>
           )}
         </Field>
