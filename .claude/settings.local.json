@@ -3,7 +3,14 @@
     "allow": [
       "Bash(git -C /Users/fagunmehta/Desktop/life-os status)",
       "Bash(git remote *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Read(//Users/fagunmehta/.nvm/versions/**)",
+      "Read(//Users/fagunmehta/.volta/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(find /Users/fagunmehta -name \"node\" -type f 2>/dev/null | head -5)",
+      "Bash(git commit -m ' *)",
+      "Bash(git add *)",
+      "Bash(npx vite *)"
     ]
   }
 }

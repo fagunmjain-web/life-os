@@ -19,7 +19,7 @@ export default function WeekView({
   getWeightTarget, getWeightEntry,
   toggleCompletion, saveWeight, deleteTask, deleteEvent,
   onEditTask, onAddTask, onAddEvent, onEditEvent,
-  sections, getEventTypeStyle, moveTask,
+  sections, getEventTypeStyle, moveTask, createEventFromTask,
 }) {
   const isMobile = useIsMobile()
   const weekStart = startOfWeek(currentDate)
@@ -28,8 +28,9 @@ export default function WeekView({
   const [tappedEvent, setTappedEvent]           = useState(null)
   const [editingWeightDate, setEditingWeightDate] = useState(null)
   const [weightVal, setWeightVal]               = useState('')
-  const [dragOver, setDragOver]                 = useState(null) // { dateStr, area }
-  const [openSections, setOpenSections]         = useState({})   // 'dateStr_sectionKey' → bool
+  const [dragOver, setDragOver]                 = useState(null)
+  const [openSections, setOpenSections]         = useState({})
+  const [hoveredTask, setHoveredTask]           = useState(null)
 
   const todayStr = toDateStr(new Date())
 
@@ -59,11 +60,9 @@ export default function WeekView({
     const task = tasks?.find(t => String(t.id) === String(data.taskId))
     if (!task) return
     if (area === 'events' && data.fromSidebar) {
-      // Open event modal pre-filled with this task's title
-      onAddEvent(new Date(targetDateStr + 'T00:00:00'), task.title)
+      createEventFromTask(task, targetDateStr)
       return
     }
-    // Assign task to this date (sidebar drag or cross-column drag)
     if (data.fromSidebar || data.fromDateStr !== targetDateStr) {
       moveTask(task, targetDateStr)
     }
@@ -92,8 +91,8 @@ export default function WeekView({
           const tasksBySection = {}
           sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
 
-          const headerBg = today ? '#d5e9ce' : '#ede5d8'
-          const colBg    = today ? '#fafff9' : '#fff'
+          const headerBg = today ? '#f5f0e8' : (isPast ? '#e0ddd8' : '#ede5d8')
+          const colBg    = isPast && !today ? '#faf8f4' : '#fff'
           const dimmed   = { filter: 'grayscale(0.9)', opacity: 0.55 }
 
           return (
@@ -191,10 +190,10 @@ export default function WeekView({
                 }}
               >
                 {sections.map(sec => {
-                  const secTasks     = tasksBySection[sec.key] || []
+                  const secTasks      = tasksBySection[sec.key] || []
                   const hasIncomplete = secTasks.some(t => !isCompleted(t.id, dateStr))
-                  const secGrey      = isPast && !hasIncomplete
-                  const isOpen       = secIsOpen(dateStr, sec.key)
+                  const secGrey       = isPast && !hasIncomplete
+                  const isOpen        = secIsOpen(dateStr, sec.key)
 
                   return (
                     <div key={sec.key} style={{
@@ -227,6 +226,8 @@ export default function WeekView({
                                 e.dataTransfer.effectAllowed = 'move'
                                 e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.id, fromDateStr: dateStr }))
                               }}
+                              onMouseEnter={() => setHoveredTask(task.id)}
+                              onMouseLeave={() => setHoveredTask(null)}
                               style={{
                                 display: 'flex', alignItems: 'flex-start', gap: 6,
                                 padding: '4px 10px',
@@ -250,6 +251,17 @@ export default function WeekView({
                                 opacity: isCompleted(task.id, dateStr) ? 0.4 : 1,
                                 wordBreak: 'break-word',
                               }}>{task.title}</span>
+                              {task.time_of_day && hoveredTask !== task.id && (
+                                <span style={{ fontSize: 10, color: '#bbb', flexShrink: 0, alignSelf: 'center', whiteSpace: 'nowrap' }}>
+                                  {task.time_of_day.slice(0, 5)}
+                                </span>
+                              )}
+                              {hoveredTask === task.id && (
+                                <div style={{ display: 'flex', gap: 2, flexShrink: 0, alignSelf: 'center' }}>
+                                  <button onClick={() => onEditTask(task)} style={taskBtn}>✎</button>
+                                  <button onClick={() => deleteTask(task.id)} style={{ ...taskBtn, color: '#C62828' }}>✕</button>
+                                </div>
+                              )}
                             </div>
                           ))}
                           <div
@@ -275,6 +287,12 @@ export default function WeekView({
 }
 
 const evBtn = {
+  width: 16, height: 16, borderRadius: 3, border: 'none', background: '#f0f0f0',
+  color: '#555', cursor: 'pointer', fontSize: 9,
+  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0,
+}
+
+const taskBtn = {
   width: 16, height: 16, borderRadius: 3, border: 'none', background: '#f0f0f0',
   color: '#555', cursor: 'pointer', fontSize: 9,
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0,

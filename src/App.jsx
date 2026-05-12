@@ -113,18 +113,18 @@ export default function App() {
 
   // createTask: insert without closing any modal (used by Sidebar inline add)
   async function createTask(taskData) {
-    const { title, section, is_recurring, days_of_week, specific_date, time_of_day } = taskData
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert({ title, section, is_recurring, days_of_week, specific_date, time_of_day })
-      .select().single()
+    const { title, section, is_recurring, days_of_week, specific_date, time_of_day, end_time } = taskData
+    const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
+    if (end_time) payload.end_time = end_time
+    const { data, error } = await supabase.from('tasks').insert(payload).select().single()
     if (error) { console.error('[createTask] error:', error); return }
     if (data) setTasks(prev => [...prev, data])
   }
 
   async function saveTask(taskData) {
-    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day } = taskData
+    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, end_time } = taskData
     const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
+    if (end_time !== undefined) payload.end_time = end_time || null
     if (id) {
       const { data, error } = await supabase.from('tasks').update(payload).eq('id', id).select().single()
       if (error) { console.error('[saveTask] update error:', error); return }
@@ -153,13 +153,25 @@ export default function App() {
   }
 
   async function saveEvent(eventData) {
-    const { title, event_type, start_date, end_date, event_time } = eventData
+    const { title, event_type, start_date, end_date, event_time, end_time } = eventData
     const payload = { title, event_type, start_date, end_date }
     if (event_time) payload.event_time = event_time
+    if (end_time) payload.end_time = end_time
     const { data, error } = await supabase.from('events').insert(payload).select().single()
     if (error) { console.error('[saveEvent] insert error:', error); return }
     if (data) setEvents(prev => [...prev, data])
     setEventModal(null)
+  }
+
+  async function createEventFromTask(task, targetDateStr) {
+    const payload = { title: task.title, event_type: 'important', start_date: targetDateStr, end_date: null }
+    const { data, error } = await supabase.from('events').insert(payload).select().single()
+    if (error) { console.error('[createEventFromTask] error:', error); return }
+    if (data) setEvents(prev => [...prev, data])
+    if (!task.is_recurring) {
+      await supabase.from('tasks').delete().eq('id', task.id)
+      setTasks(prev => prev.filter(t => t.id !== task.id))
+    }
   }
 
   async function deleteEvent(eventId) {
@@ -168,9 +180,10 @@ export default function App() {
   }
 
   async function updateEvent(eventData) {
-    const { id, title, event_type, start_date, end_date, event_time } = eventData
+    const { id, title, event_type, start_date, end_date, event_time, end_time } = eventData
     const payload = { title, event_type, start_date, end_date }
     if (event_time) payload.event_time = event_time
+    if (end_time) payload.end_time = end_time
     const { data, error } = await supabase.from('events').update(payload).eq('id', id).select().single()
     if (error) { console.error('[updateEvent] update error:', error); return }
     if (data) setEvents(prev => prev.map(e => e.id === data.id ? data : e))
@@ -202,10 +215,9 @@ export default function App() {
     const dateStr = toDateStr(date)
     const dayName = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()]
     return tasks.filter(t => {
-      const dow = t.days_of_week
-      const hasRealDays = Array.isArray(dow) && dow.length > 0
-      if (t.is_recurring === true || (t.is_recurring !== false && hasRealDays)) {
-        return hasRealDays && dow.includes(dayName)
+      if (t.is_recurring === true) {
+        const dow = t.days_of_week
+        return Array.isArray(dow) && dow.length > 0 && dow.includes(dayName)
       }
       return t.specific_date === dateStr
     })
@@ -298,7 +310,7 @@ export default function App() {
     onAddTask:   (sectionKey, date) => setTaskModal({ defaultSection: sectionKey, defaultDate: date }),
     onAddEvent:  (date, initialTitle) => setEventModal({ date, initialTitle }),
     onEditEvent: (event) => setEventModal({ event }),
-    navigate, activeView, setActiveView, getEventTypeStyle, moveTask,
+    navigate, activeView, setActiveView, getEventTypeStyle, moveTask, createEventFromTask,
   }
 
   const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
@@ -367,6 +379,10 @@ export default function App() {
           currentDate={currentDate}
           toggleCompletion={toggleCompletion}
           createTask={createTask}
+          saveTask={saveTask}
+          deleteTask={deleteTask}
+          onEditTask={(task) => setTaskModal({ task })}
+          onAddHabit={() => setTaskModal({ defaultRecurring: true })}
           setDeleteConfirm={setDeleteConfirm}
           setSectionModal={setSectionModal}
           setEventTypes={setEventTypes}
@@ -412,6 +428,7 @@ export default function App() {
           task={taskModal.task}
           defaultSection={taskModal.defaultSection}
           defaultDate={taskModal.defaultDate}
+          defaultRecurring={taskModal.defaultRecurring}
           sections={sections}
           onSave={saveTask}
           onClose={() => setTaskModal(null)}

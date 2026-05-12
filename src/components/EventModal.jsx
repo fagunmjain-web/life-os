@@ -17,7 +17,8 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
   const [type, setType] = useState(event?.event_type || types[0]?.key || 'important')
   const [startDate, setStartDate] = useState(initialDate)
   const [endDate, setEndDate] = useState(event?.end_date || '')
-  const [timeOfDay, setTimeOfDay] = useState(event?.event_time || '')
+  const [startTime, setStartTime] = useState(event?.start_time || event?.event_time || '')
+  const [endTime, setEndTime] = useState(event?.end_time || '')
   const [repeatAnnually, setRepeatAnnually] = useState(
     event ? (event.repeat_annually ?? false) : true
   )
@@ -35,7 +36,8 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
       event_type: type,
       start_date: startDate,
       end_date: (selectedType?.key === 'travel' || type === 'travel') && endDate ? endDate : null,
-      event_time: timeOfDay || null,
+      event_time: startTime || null,
+      end_time: endTime || null,
     }
     if (isEdit) onUpdate({ ...data, id: event.id })
     else onSave(data)
@@ -102,17 +104,33 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
         )}
 
         <div style={{ marginBottom: 14 }}>
-          <div style={fieldLabel}>Time (optional)</div>
-          {timeOfDay ? (
+          <div style={fieldLabel}>Start time (optional)</div>
+          {startTime ? (
             <div>
-              <TimePicker value={timeOfDay} onChange={setTimeOfDay} />
-              <button onClick={() => setTimeOfDay('')} style={{ marginTop: 8, fontSize: 13, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+              <TimePicker value={startTime} onChange={setStartTime} />
+              <button onClick={() => setStartTime('')} style={{ marginTop: 8, fontSize: 13, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
                 Clear time
               </button>
             </div>
           ) : (
-            <button onClick={() => setTimeOfDay('09:00')} style={{ fontSize: 14, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              + Set time
+            <button onClick={() => setStartTime('09:00')} style={{ fontSize: 14, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              + Start time
+            </button>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <div style={fieldLabel}>End time (optional)</div>
+          {endTime ? (
+            <div>
+              <TimePicker value={endTime} onChange={setEndTime} />
+              <button onClick={() => setEndTime('')} style={{ marginTop: 8, fontSize: 13, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
+                Clear time
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setEndTime('10:00')} style={{ fontSize: 14, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              + End time
             </button>
           )}
         </div>
