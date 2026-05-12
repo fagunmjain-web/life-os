@@ -92,8 +92,9 @@ export default function WeekView({
           const tasksBySection = {}
           sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
 
+          const allDone  = isPast && dayTasks.length > 0 && dayTasks.every(t => isCompleted(t.id, dateStr))
           const headerBg = today ? '#f5f0e8' : (isPast ? '#e0ddd8' : '#ede5d8')
-          const colBg    = isPast && !today ? '#faf8f4' : '#fff'
+          const colBg    = today ? '#fff' : (isPast ? (allDone ? '#eeebe6' : '#faf8f4') : '#faf8f4')
           const dimmed   = { filter: 'grayscale(0.9)', opacity: 0.55 }
 
           return (
