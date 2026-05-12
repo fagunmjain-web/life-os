@@ -8,12 +8,12 @@ const DEFAULT_EVENT_TYPES = [
   { key: 'travel', label: 'Travel', color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
 ]
 
-export default function EventModal({ date, event, onSave, onUpdate, onClose, eventTypes }) {
+export default function EventModal({ date, event, onSave, onUpdate, onClose, eventTypes, initialTitle }) {
   const types = eventTypes || DEFAULT_EVENT_TYPES
   const isEdit = !!event
   const initialDate = date ? toDateStr(date) : event?.start_date || toDateStr(new Date())
 
-  const [title, setTitle] = useState(event?.title || '')
+  const [title, setTitle] = useState(event?.title || initialTitle || '')
   const [type, setType] = useState(event?.event_type || types[0]?.key || 'important')
   const [startDate, setStartDate] = useState(initialDate)
   const [endDate, setEndDate] = useState(event?.end_date || '')

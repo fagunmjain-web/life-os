@@ -1,12 +1,22 @@
-import { useState, useRef } from 'react'
-import { toDateStr, isFriday, isToday, startOfWeek, addDays, DAY_LABELS } from '../utils.js'
-import Section from '../components/Section.jsx'
+import { useState } from 'react'
+import { toDateStr, isFriday, isToday, startOfWeek, addDays } from '../utils.js'
 import { useIsMobile } from '../hooks/useIsMobile.js'
+
+const DAY_ABBREV = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function Chevron({ open }) {
+  return (
+    <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8"
+      style={{ flexShrink: 0, transition: 'transform .2s', transform: open ? 'rotate(-90deg)' : 'rotate(90deg)' }}>
+      <path d="M3 2L7 5L3 8" />
+    </svg>
+  )
+}
 
 export default function WeekView({
   currentDate, setCurrentDate, setActiveView,
-  getTasksForDate, isCompleted, getEventsForDate,
-  getWeightTarget, getWeightEntry, hasOverdue,
+  tasks, getTasksForDate, isCompleted, getEventsForDate,
+  getWeightTarget, getWeightEntry,
   toggleCompletion, saveWeight, deleteTask, deleteEvent,
   onEditTask, onAddTask, onAddEvent, onEditEvent,
   sections, getEventTypeStyle, moveTask,
@@ -14,17 +24,22 @@ export default function WeekView({
   const isMobile = useIsMobile()
   const weekStart = startOfWeek(currentDate)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
-  const [tappedEvent, setTappedEvent] = useState(null)
+
+  const [tappedEvent, setTappedEvent]           = useState(null)
   const [editingWeightDate, setEditingWeightDate] = useState(null)
-  const [weightVal, setWeightVal] = useState('')
-  const [dragOver, setDragOver] = useState(null)
-  const dragRef = useRef(null)  // { task, fromDateStr }
+  const [weightVal, setWeightVal]               = useState('')
+  const [dragOver, setDragOver]                 = useState(null) // { dateStr, area }
+  const [openSections, setOpenSections]         = useState({})   // 'dateStr_sectionKey' → bool
 
   const todayStr = toDateStr(new Date())
 
-  function goToDay(date) {
-    setCurrentDate(date)
-    setActiveView('Day')
+  function secIsOpen(dateStr, sectionKey) {
+    const k = `${dateStr}_${sectionKey}`
+    return k in openSections ? openSections[k] : true
+  }
+  function toggleSec(dateStr, sectionKey) {
+    const k = `${dateStr}_${sectionKey}`
+    setOpenSections(p => ({ ...p, [k]: !secIsOpen(dateStr, sectionKey) }))
   }
 
   function handleWeightBlur(ds) {
@@ -32,126 +47,225 @@ export default function WeekView({
     if (weightVal !== '' && !isNaN(weightVal)) saveWeight(ds, parseFloat(weightVal))
   }
 
+  function parseDrag(e) {
+    try { return JSON.parse(e.dataTransfer.getData('application/json')) } catch { return null }
+  }
+
+  function handleDrop(e, targetDateStr, area) {
+    e.preventDefault()
+    setDragOver(null)
+    const data = parseDrag(e)
+    if (!data) return
+    const task = tasks?.find(t => String(t.id) === String(data.taskId))
+    if (!task) return
+    if (area === 'events' && data.fromSidebar) {
+      // Open event modal pre-filled with this task's title
+      onAddEvent(new Date(targetDateStr + 'T00:00:00'), task.title)
+      return
+    }
+    // Assign task to this date (sidebar drag or cross-column drag)
+    if (data.fromSidebar || data.fromDateStr !== targetDateStr) {
+      moveTask(task, targetDateStr)
+    }
+  }
+
+  const isOver = (dateStr, area) => dragOver?.dateStr === dateStr && dragOver?.area === area
+
   return (
-    <div style={{ paddingTop: 10 }}>
-      <div style={{ display: isMobile ? 'flex' : 'grid', flexDirection: isMobile ? 'column' : undefined, gridTemplateColumns: 'repeat(7, minmax(140px, 1fr))', gap: 8, overflowX: isMobile ? undefined : 'auto' }}>
+    <div style={{ paddingTop: 8 }}>
+      <div style={{
+        display: isMobile ? 'flex' : 'grid',
+        flexDirection: isMobile ? 'column' : undefined,
+        gridTemplateColumns: 'repeat(7, minmax(130px, 1fr))',
+        gap: 6,
+        overflowX: isMobile ? undefined : 'auto',
+      }}>
         {days.map(day => {
-          const dateStr = toDateStr(day)
-          const dayTasks = getTasksForDate(day)
-          const dayEvents = getEventsForDate(day)
-          const weightTarget = getWeightTarget(dateStr)
-          const weightEntry = getWeightEntry(dateStr)
-          const today = isToday(day)
-          const overdue = hasOverdue(day)
-          const isPast = dateStr < todayStr
+          const dateStr     = toDateStr(day)
+          const dayTasks    = getTasksForDate(day)
+          const dayEvents   = getEventsForDate(day)
+          const wtTarget    = getWeightTarget(dateStr)
+          const wtEntry     = getWeightEntry(dateStr)
+          const today       = isToday(day)
+          const isPast      = dateStr < todayStr
+
           const tasksBySection = {}
           sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
-          const singleDayEvents = dayEvents
-          const isDropTarget = dragOver === dateStr
+
+          const headerBg = today ? '#d5e9ce' : '#ede5d8'
+          const colBg    = today ? '#fefffe' : '#fff'
+          const dimmed   = { filter: 'grayscale(0.9)', opacity: 0.55 }
 
           return (
-            <div
-              key={dateStr}
-              onDragOver={e => { e.preventDefault(); setDragOver(dateStr) }}
-              onDragLeave={() => setDragOver(null)}
-              onDrop={e => {
-                e.preventDefault()
-                setDragOver(null)
-                if (!dragRef.current) return
-                const { task, fromDateStr } = dragRef.current
-                if (fromDateStr !== dateStr && moveTask) moveTask(task, dateStr)
-                dragRef.current = null
-              }}
-              style={{
-                background: '#fff', borderRadius: 14, padding: '12px 10px',
-                border: today ? '1.5px solid #aaa' : isDropTarget ? '1.5px dashed #5B8ED6' : '1px solid #EBEBEB',
-                minHeight: isMobile ? 'auto' : 400, display: 'flex', flexDirection: 'column',
-                transition: 'border-color .15s',
-              }}
-            >
+            <div key={dateStr} style={{
+              background: colBg, borderRadius: 10, overflow: 'hidden',
+              display: 'flex', flexDirection: 'column',
+              minHeight: isMobile ? 'auto' : 360,
+              border: '1px solid #e8e2da',
+            }}>
+
+              {/* DAY HEADER */}
               <div
-                onClick={() => goToDay(day)}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0, cursor: 'pointer' }}
+                onClick={() => { setCurrentDate(day); setActiveView('Day') }}
+                style={{
+                  background: headerBg,
+                  borderBottom: '1.5px solid #c0b8ae',
+                  padding: '6px 10px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  cursor: 'pointer', flexShrink: 0,
+                  ...(isPast ? dimmed : {}),
+                }}
               >
-                <span style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C' }}>{DAY_LABELS[day.getDay()]}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C' }}>{day.getDate()}</span>
-                  {overdue && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F9A825' }} title="Overdue tasks" />}
-                </div>
+                <span style={{ fontSize: 13, fontWeight: 400, color: '#2C2C2C' }}>{DAY_ABBREV[day.getDay()]}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#2C2C2C' }}>{day.getDate()}</span>
               </div>
 
-              {isFriday(day) && weightTarget && (
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#4A8C40', marginBottom: 5, flexShrink: 0, display: 'flex', alignItems: 'baseline', gap: 3 }}>
-                  <span>Wt: {weightTarget.target_weight}kg</span>
+              {/* WEIGHT ROW (Fridays only) */}
+              {isFriday(day) && wtTarget && (
+                <div style={{ padding: '4px 10px 0', flexShrink: 0, ...(isPast ? dimmed : {}) }}>
+                  <span style={{ fontSize: 11, color: '#4A8C40', fontWeight: 600 }}>
+                    Wt: {wtTarget.target_weight}kg{' '}
+                  </span>
                   {editingWeightDate === dateStr ? (
                     <input
                       autoFocus type="number" step="0.1" value={weightVal}
                       onChange={e => setWeightVal(e.target.value)}
                       onBlur={() => handleWeightBlur(dateStr)}
-                      style={{ fontSize: 11, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 32, fontFamily: 'inherit' }}
+                      style={{ fontSize: 11, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 36, fontFamily: 'inherit', fontWeight: 600 }}
                     />
                   ) : (
                     <span
-                      onClick={() => { setEditingWeightDate(dateStr); setWeightVal(weightEntry?.actual_weight ?? '') }}
-                      style={{ borderBottom: '1.5px solid #aaa', display: 'inline-block', minWidth: 28, cursor: 'text', color: '#2C2C2C' }}
-                    >{weightEntry?.actual_weight ?? ''}</span>
+                      onClick={() => { setEditingWeightDate(dateStr); setWeightVal(wtEntry?.actual_weight ?? '') }}
+                      style={{ fontSize: 11, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
+                    >{wtEntry?.actual_weight ?? ''}</span>
                   )}
                 </div>
               )}
 
-              {singleDayEvents.length > 0 && (
-                <div style={{ flexShrink: 0, marginBottom: 4 }}>
-                  {singleDayEvents.map(e => {
-                    const s = getEventTypeStyle(e.event_type)
-                    return (
-                      <div
-                        key={e.id}
-                        draggable
-                        onDragStart={ev => {
-                          ev.dataTransfer.effectAllowed = 'move'
-                          dragRef.current = { task: null, event: e, fromDateStr: dateStr }
-                        }}
-                        style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 3, cursor: 'grab' }}
-                      >
-                        <span
-                          onClick={() => setTappedEvent(tappedEvent === e.id ? null : e.id)}
-                          style={{ background: s.bg, color: s.textColor, fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 5, cursor: 'pointer', flex: 1 }}
-                        >{e.title}</span>
-                        {tappedEvent === e.id && (
-                          <div style={{ display: 'flex', gap: 2 }}>
-                            <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#E8F5E4','#2C4A24','#C8E6C0')}>✎</button>
-                            <button onClick={() => { deleteEvent(e.id); setTappedEvent(null) }} style={evActBtn('#FFEBEE','#C62828','#FFCDD2')}>✕</button>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+              {/* EVENTS AREA */}
+              <div
+                onDragOver={e => { e.preventDefault(); setDragOver({ dateStr, area: 'events' }) }}
+                onDragLeave={() => setDragOver(null)}
+                onDrop={e => handleDrop(e, dateStr, 'events')}
+                style={{
+                  padding: '6px 10px 4px', flexShrink: 0,
+                  background: isOver(dateStr, 'events') ? '#eef4ff' : 'transparent',
+                  transition: 'background .1s',
+                  ...(isPast ? dimmed : {}),
+                }}
+              >
+                {dayEvents.map(ev => {
+                  const s = getEventTypeStyle(ev.event_type)
+                  return (
+                    <div key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.bg, flexShrink: 0 }} />
+                      <span
+                        onClick={() => setTappedEvent(tappedEvent === ev.id ? null : ev.id)}
+                        style={{ fontSize: 11, color: s.labelColor, fontWeight: 500, flex: 1, cursor: 'pointer', lineHeight: 1.3 }}
+                      >{ev.title}</span>
+                      {tappedEvent === ev.id && (
+                        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                          <button onClick={() => { onEditEvent(ev); setTappedEvent(null) }} style={evBtn}>✎</button>
+                          <button onClick={() => { deleteEvent(ev.id); setTappedEvent(null) }} style={{ ...evBtn, color: '#C62828' }}>✕</button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                <div onClick={() => onAddEvent(day)} style={{ fontSize: 11, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, paddingTop: 1 }}>
+                  <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#bbb" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
+                  Add event
                 </div>
-              )}
-
-              <div onClick={() => onAddEvent(day)} style={{ fontSize: 11, color: '#aaa', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, marginBottom: 6, flexShrink: 0 }}>
-                <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#aaa" strokeWidth="2"><path d="M6 2v8M2 6h8"/></svg>
-                Add event
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'none' }}>
-                {sections.map(sec => (
-                  <Section
-                    key={sec.key}
-                    sec={sec}
-                    tasks={tasksBySection[sec.key] || []}
-                    dateStr={dateStr}
-                    isCompleted={isCompleted}
-                    toggleCompletion={toggleCompletion}
-                    onEditTask={onEditTask}
-                    onDeleteTask={deleteTask}
-                    onAddTask={(key) => onAddTask(key, dateStr)}
-                    isPast={isPast}
-                    onDragTask={(task) => { dragRef.current = { task, fromDateStr: dateStr } }}
-                    compact
-                  />
-                ))}
+              {/* TASK SECTIONS */}
+              <div
+                onDragOver={e => { e.preventDefault(); setDragOver({ dateStr, area: 'tasks' }) }}
+                onDragLeave={() => setDragOver(null)}
+                onDrop={e => handleDrop(e, dateStr, 'tasks')}
+                style={{
+                  flex: 1, overflowY: 'auto', scrollbarWidth: 'none',
+                  padding: '4px 0 8px',
+                  background: isOver(dateStr, 'tasks') ? '#f5f9f0' : 'transparent',
+                  transition: 'background .1s',
+                }}
+              >
+                {sections.map(sec => {
+                  const secTasks     = tasksBySection[sec.key] || []
+                  const hasIncomplete = secTasks.some(t => !isCompleted(t.id, dateStr))
+                  const secGrey      = isPast && !hasIncomplete
+                  const isOpen       = secIsOpen(dateStr, sec.key)
+
+                  return (
+                    <div key={sec.key} style={{
+                      marginBottom: 5,
+                      filter: secGrey ? 'grayscale(0.9)' : 'none',
+                      opacity: secGrey ? 0.5 : 1,
+                      transition: 'filter .2s, opacity .2s',
+                    }}>
+                      {/* Section header */}
+                      <div
+                        onClick={() => toggleSec(dateStr, sec.key)}
+                        style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          padding: '3px 10px',
+                          borderBottom: `2px solid ${sec.cb}`,
+                          cursor: 'pointer', userSelect: 'none',
+                          color: sec.cb,
+                        }}
+                      >
+                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{sec.label}</span>
+                        <Chevron open={isOpen} />
+                      </div>
+
+                      {isOpen && (
+                        <div>
+                          {secTasks.map(task => (
+                            <div key={task.id}
+                              draggable
+                              onDragStart={e => {
+                                e.dataTransfer.effectAllowed = 'move'
+                                e.dataTransfer.setData('application/json', JSON.stringify({ taskId: task.id, fromDateStr: dateStr }))
+                              }}
+                              style={{
+                                display: 'flex', alignItems: 'flex-start', gap: 6,
+                                padding: '4px 10px',
+                                borderBottom: '1px dotted rgba(0,0,0,0.12)',
+                                cursor: 'grab',
+                              }}
+                            >
+                              <div
+                                onClick={() => toggleCompletion(task.id, dateStr)}
+                                style={{
+                                  width: 12, height: 12, borderRadius: 3,
+                                  border: `1.5px solid ${sec.cb}`,
+                                  flexShrink: 0, cursor: 'pointer', marginTop: 1,
+                                  background: isCompleted(task.id, dateStr) ? sec.cb : 'transparent',
+                                  transition: 'background .1s',
+                                }}
+                              />
+                              <span style={{
+                                fontSize: 12, color: '#2C2C2C', flex: 1, lineHeight: 1.4,
+                                textDecoration: isCompleted(task.id, dateStr) ? 'line-through' : 'none',
+                                opacity: isCompleted(task.id, dateStr) ? 0.4 : 1,
+                                wordBreak: 'break-word',
+                              }}>{task.title}</span>
+                            </div>
+                          ))}
+                          <div
+                            onClick={() => onAddTask(sec.key, dateStr)}
+                            style={{ padding: '4px 10px', fontSize: 11, color: sec.cb, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, opacity: 0.75 }}
+                          >
+                            <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
+                            Add task
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
+
             </div>
           )
         })}
@@ -160,6 +274,8 @@ export default function WeekView({
   )
 }
 
-function evActBtn(bg, color, border) {
-  return { width: 14, height: 14, borderRadius: 3, border: `1px solid ${border}`, background: bg, color, cursor: 'pointer', fontSize: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+const evBtn = {
+  width: 16, height: 16, borderRadius: 3, border: 'none', background: '#f0f0f0',
+  color: '#555', cursor: 'pointer', fontSize: 9,
+  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0,
 }
