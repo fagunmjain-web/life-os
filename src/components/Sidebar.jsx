@@ -351,7 +351,6 @@ export default function Sidebar({
                           <span style={{ fontSize: 12, color: '#2C2C2C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={task.title}>{task.title}</span>
                           {hoveredHabit === task.id && (
                             <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                              <button onClick={() => onEditTask(task)} style={habitActionBtn}>✎</button>
                               <button onClick={() => setDeleteConfirm({ type: 'task', id: task.id, name: task.title })} style={{ ...habitActionBtn, color: '#C62828' }}>×</button>
                             </div>
                           )}
