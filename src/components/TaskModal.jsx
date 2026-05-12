@@ -13,7 +13,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, sections,
   }
   const [section, setSection] = useState(task?.section || defaultSection || sections[0]?.key || 'health')
   const [isRecurring, setIsRecurring] = useState(
-    task?.is_recurring !== undefined ? task.is_recurring : (defaultDate ? false : true)
+    task ? (task.is_recurring ?? false) : false
   )
   const [days, setDays] = useState(task?.days_of_week || [])
   const [specificDate, setSpecificDate] = useState(task?.specific_date || defaultDate || '')
@@ -55,7 +55,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, sections,
             {sections.map(s => (
               <button key={s.key} onClick={() => setSection(s.key)} style={{
                 padding: '5px 10px', borderRadius: 7, fontSize: 13, fontWeight: 600,
-                border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                border: `1.5px solid ${s.cb}`, cursor: 'pointer', fontFamily: 'inherit',
                 background: section === s.key ? s.cb : s.sb,
                 color: section === s.key ? '#fff' : s.ct,
                 transition: 'all .15s',

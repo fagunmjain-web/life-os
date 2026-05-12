@@ -531,7 +531,7 @@ export default function App() {
             )}
             {activeView === 'Year' && !showWeight && (
               <>
-                <button onClick={() => setTaskModal({ defaultSection: null })} style={yearBtn}>+ Task</button>
+                <button onClick={() => setTaskModal({ defaultSection: null, defaultDate: toDateStr(new Date()) })} style={yearBtn}>+ Task</button>
                 <button onClick={() => setEventModal({ date: new Date() })}    style={yearBtn}>+ Event</button>
               </>
             )}
