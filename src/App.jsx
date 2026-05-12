@@ -304,104 +304,108 @@ export default function App() {
   const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', minHeight: '100vh', background: '#faf8f4', overflowX: 'hidden', maxWidth: '100vw' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#faf8f4', overflowX: 'hidden', maxWidth: '100vw' }}>
 
-      {/* SIDEBAR */}
-      <Sidebar
-        open={sidebarOpen}
-        isMobile={isMobile}
-        onClose={() => setSidebarOpen(false)}
-        tasks={tasks}
-        completions={completions}
-        sections={sections}
-        eventTypes={eventTypes}
-        currentDate={currentDate}
-        toggleCompletion={toggleCompletion}
-        createTask={createTask}
-        setDeleteConfirm={setDeleteConfirm}
-        setSectionModal={setSectionModal}
-        setEventTypes={setEventTypes}
-      />
+      {/* STICKY HEADER — full viewport width, never moves when sidebar toggles */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#faf8f4', padding: '8px 16px', borderBottom: '1px solid #ede8e0' }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 38 }}>
 
-      {/* MAIN */}
-      <div
-        style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}
+          {/* Far left: hamburger */}
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            style={{ background: 'none', border: 'none', outline: 'none', boxShadow: 'none', cursor: 'pointer', fontSize: 18, color: '#555', padding: '2px 8px 2px 0', lineHeight: 1, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}
+          >☰</button>
+
+          {/* Left side: plain text nav links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, zIndex: 1 }}>
+            {VIEWS.map(v => {
+              const isActive = v !== 'Today' && activeView === v
+              return (
+                <span key={v}
+                  onClick={() => { if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') } else setActiveView(v) }}
+                  style={{ fontSize: 13, fontWeight: isActive ? 700 : 400, color: isActive ? '#2C2C2C' : '#aaa', cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none' }}
+                >{v}</span>
+              )
+            })}
+          </div>
+
+          {/* Centre: ‹ date range › — absolutely centred in the full header */}
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
+            <button onClick={() => navigate(-1)} style={navArrowBtn}>‹</button>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#2C2C2C', minWidth: 90, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
+            <button onClick={() => navigate(1)}  style={navArrowBtn}>›</button>
+          </div>
+
+          {/* Far right: weight widget / year quick-add */}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, zIndex: 1 }}>
+            {showWeight && (
+              <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
+            )}
+            {activeView === 'Year' && !showWeight && (
+              <>
+                <button onClick={() => setTaskModal({ defaultSection: null, defaultDate: toDateStr(new Date()) })} style={yearBtn}>+ Task</button>
+                <button onClick={() => setEventModal({ date: new Date() })} style={yearBtn}>+ Event</button>
+              </>
+            )}
+          </div>
+
+        </div>
+      </div>
+
+      {/* CONTENT ROW: sidebar + views */}
+      <div style={{ display: 'flex', flex: 1, alignItems: 'flex-start' }}
         onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
       >
-        {/* DELETE CONFIRM */}
-        {deleteConfirm && (
-          <div onClick={() => setDeleteConfirm(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={e => e.stopPropagation()}
-              style={{ background: '#fff', borderRadius: 16, padding: 24, width: 280, textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>Are you sure?</div>
-              <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>Delete "{deleteConfirm.name}"?</div>
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-                <button onClick={() => setDeleteConfirm(null)} style={cancelBtn}>No</button>
-                <button onClick={() => {
-                  if (deleteConfirm.type === 'section')   deleteSection(deleteConfirm.key)
-                  if (deleteConfirm.type === 'event')     { deleteEvent(deleteConfirm.id); setDeleteConfirm(null) }
-                  if (deleteConfirm.type === 'task')      { deleteTask(deleteConfirm.id); setDeleteConfirm(null) }
-                  if (deleteConfirm.type === 'eventType') { setEventTypes(prev => prev.filter(et => et.key !== deleteConfirm.key)); setDeleteConfirm(null) }
-                }} style={{ ...cancelBtn, background: '#C62828', color: '#fff' }}>Yes, delete</button>
-              </div>
+        <Sidebar
+          open={sidebarOpen}
+          isMobile={isMobile}
+          onClose={() => setSidebarOpen(false)}
+          tasks={tasks}
+          completions={completions}
+          sections={sections}
+          eventTypes={eventTypes}
+          currentDate={currentDate}
+          toggleCompletion={toggleCompletion}
+          createTask={createTask}
+          setDeleteConfirm={setDeleteConfirm}
+          setSectionModal={setSectionModal}
+          setEventTypes={setEventTypes}
+        />
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 15 }}>Loading your life…</div>
+          ) : (
+            <div style={{ width: '100%', padding: '8px 16px 32px' }}>
+              {activeView === 'Day'   && <DayView   {...sharedProps} />}
+              {activeView === 'Week'  && <WeekView  {...sharedProps} />}
+              {activeView === 'Month' && <MonthView {...sharedProps} />}
+              {activeView === 'Year'  && <YearView  {...sharedProps} />}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </div>
 
-        {/* STICKY HEADER */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#faf8f4', padding: '8px 16px', borderBottom: '1px solid #ede8e0' }}>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 38 }}>
-
-            {/* Left: hamburger */}
-            <button
-              onClick={() => setSidebarOpen(o => !o)}
-              style={{ background: 'none', border: 'none', outline: 'none', boxShadow: 'none', cursor: 'pointer', fontSize: 18, color: '#555', padding: '2px 6px 2px 0', lineHeight: 1, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}
-            >☰</button>
-
-            {/* Centre: ‹ date range › — absolutely centred */}
-            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
-              <button onClick={() => navigate(-1)} style={navArrowBtn}>‹</button>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#2C2C2C', minWidth: 90, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
-              <button onClick={() => navigate(1)}  style={navArrowBtn}>›</button>
+      {/* DELETE CONFIRM */}
+      {deleteConfirm && (
+        <div onClick={() => setDeleteConfirm(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 16, padding: 24, width: 280, textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>Are you sure?</div>
+            <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>Delete "{deleteConfirm.name}"?</div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <button onClick={() => setDeleteConfirm(null)} style={cancelBtn}>No</button>
+              <button onClick={() => {
+                if (deleteConfirm.type === 'section')   deleteSection(deleteConfirm.key)
+                if (deleteConfirm.type === 'event')     { deleteEvent(deleteConfirm.id); setDeleteConfirm(null) }
+                if (deleteConfirm.type === 'task')      { deleteTask(deleteConfirm.id); setDeleteConfirm(null) }
+                if (deleteConfirm.type === 'eventType') { setEventTypes(prev => prev.filter(et => et.key !== deleteConfirm.key)); setDeleteConfirm(null) }
+              }} style={{ ...cancelBtn, background: '#C62828', color: '#fff' }}>Yes, delete</button>
             </div>
-
-            {/* Right: plain text view links */}
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14, zIndex: 1 }}>
-              {showWeight && (
-                <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
-              )}
-              {activeView === 'Year' && !showWeight && (
-                <>
-                  <button onClick={() => setTaskModal({ defaultSection: null, defaultDate: toDateStr(new Date()) })} style={yearBtn}>+ Task</button>
-                  <button onClick={() => setEventModal({ date: new Date() })} style={yearBtn}>+ Event</button>
-                </>
-              )}
-              {VIEWS.map(v => {
-                const isActive = v !== 'Today' && activeView === v
-                return (
-                  <span key={v}
-                    onClick={() => { if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') } else setActiveView(v) }}
-                    style={{ fontSize: 13, fontWeight: isActive ? 700 : 400, color: isActive ? '#2C2C2C' : '#aaa', cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none' }}
-                  >{v}</span>
-                )
-              })}
-            </div>
-
           </div>
         </div>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 15 }}>Loading your life…</div>
-        ) : (
-          <div style={{ width: '100%', padding: '8px 16px 32px' }}>
-            {activeView === 'Day'   && <DayView   {...sharedProps} />}
-            {activeView === 'Week'  && <WeekView  {...sharedProps} />}
-            {activeView === 'Month' && <MonthView {...sharedProps} />}
-            {activeView === 'Year'  && <YearView  {...sharedProps} />}
-          </div>
-        )}
-      </div>
+      )}
 
       {taskModal !== null && (
         <TaskModal

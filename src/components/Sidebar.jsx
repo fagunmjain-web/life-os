@@ -86,6 +86,7 @@ export default function Sidebar({
     setNewEventType(null)
   }
 
+  // 55px = header height (8px pad-top + 38px inner + 8px pad-bottom + 1px border)
   const sidebarStyle = isMobile
     ? {
         position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 200,
@@ -93,7 +94,7 @@ export default function Sidebar({
         background: '#fff', borderRight: '1.5px solid #cfc9c0',
       }
     : {
-        position: 'sticky', top: 0, height: '100vh', flexShrink: 0,
+        position: 'sticky', top: 55, height: 'calc(100vh - 55px)', flexShrink: 0,
         width: open ? 190 : 0, overflow: 'hidden', transition: 'width .25s ease',
         background: '#fff', borderRight: open ? '1.5px solid #cfc9c0' : 'none',
       }

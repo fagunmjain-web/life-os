@@ -77,10 +77,10 @@ export default function WeekView({
         display: isMobile ? 'flex' : 'grid',
         flexDirection: isMobile ? 'column' : undefined,
         gridTemplateColumns: 'repeat(7, minmax(130px, 1fr))',
-        gap: 6,
+        gap: 0,
         overflowX: isMobile ? undefined : 'auto',
       }}>
-        {days.map(day => {
+        {days.map((day, di) => {
           const dateStr     = toDateStr(day)
           const dayTasks    = getTasksForDate(day)
           const dayEvents   = getEventsForDate(day)
@@ -93,15 +93,15 @@ export default function WeekView({
           sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
 
           const headerBg = today ? '#d5e9ce' : '#ede5d8'
-          const colBg    = today ? '#fefffe' : '#fff'
+          const colBg    = today ? '#fafff9' : '#fff'
           const dimmed   = { filter: 'grayscale(0.9)', opacity: 0.55 }
 
           return (
             <div key={dateStr} style={{
-              background: colBg, borderRadius: 10, overflow: 'hidden',
+              background: colBg,
               display: 'flex', flexDirection: 'column',
               minHeight: isMobile ? 'auto' : 360,
-              border: '1px solid #e8e2da',
+              borderRight: di < 6 ? '1px solid #e0d9d0' : 'none',
             }}>
 
               {/* DAY HEADER */}
@@ -209,7 +209,7 @@ export default function WeekView({
                         style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                           padding: '3px 10px',
-                          borderBottom: `2px solid ${sec.cb}`,
+                          borderBottom: `1.5px solid ${sec.sh}`,
                           cursor: 'pointer', userSelect: 'none',
                           color: sec.cb,
                         }}
