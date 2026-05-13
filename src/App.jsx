@@ -113,22 +113,23 @@ export default function App() {
 
   // createTask: insert without closing any modal (used by Sidebar inline add)
   async function createTask(taskData) {
-    const { title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, start_date } = taskData
+    const { title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, end_date } = taskData
     const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
     if (is_habit) payload.is_habit = is_habit
-    if (end_time)   payload.end_time   = end_time
-    if (start_date) payload.start_date = start_date
+    if (end_time) payload.end_time = end_time
+    if (end_date) payload.end_date = end_date
     const { data, error } = await supabase.from('tasks').insert(payload).select().single()
     if (error) { console.error('[createTask] error:', error); return }
     if (data) setTasks(prev => [...prev, data])
   }
 
   async function saveTask(taskData) {
-    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, start_date } = taskData
-    const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
+    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, end_date } = taskData
+    const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day,
+      end_date: end_date || null,
+    }
     if (is_habit !== undefined) payload.is_habit = !!is_habit
-    if (end_time)   payload.end_time   = end_time
-    if (start_date) payload.start_date = start_date
+    if (end_time) payload.end_time = end_time
     if (id) {
       const { data, error } = await supabase.from('tasks').update(payload).eq('id', id).select().single()
       if (error) { console.error('[saveTask] update error:', error); return }
@@ -141,9 +142,24 @@ export default function App() {
     setTaskModal(null)
   }
 
+  async function updateTaskTitle(taskId, newTitle) {
+    const { data, error } = await supabase.from('tasks').update({ title: newTitle }).eq('id', taskId).select().single()
+    if (error) { console.error('[updateTaskTitle] error:', error); return }
+    if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
+  }
+
   async function updateTaskSection(taskId, newSection) {
     const { data, error } = await supabase.from('tasks').update({ section: newSection }).eq('id', taskId).select().single()
     if (error) { console.error('[updateTaskSection] error:', error); return }
+    if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
+  }
+
+  // Assign a To Do task (no date) to a specific date + section
+  async function assignTask(task, dateStr, section) {
+    const updates = { specific_date: dateStr }
+    if (section) updates.section = section
+    const { data, error } = await supabase.from('tasks').update(updates).eq('id', task.id).select().single()
+    if (error) { console.error('[assignTask] error:', error); return }
     if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
   }
 
@@ -200,6 +216,13 @@ export default function App() {
     setEventModal(null)
   }
 
+  // Move an event to a different date by updating start_date
+  async function moveEvent(eventId, newDateStr) {
+    const { data, error } = await supabase.from('events').update({ start_date: newDateStr }).eq('id', eventId).select().single()
+    if (error) { console.error('[moveEvent] error:', error); return }
+    if (data) setEvents(prev => prev.map(e => e.id === data.id ? data : e))
+  }
+
   async function moveTask(task, targetDateStr) {
     // null targetDateStr = move back to To Do (unassign date)
     if (targetDateStr === null) {
@@ -208,17 +231,11 @@ export default function App() {
       if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
       return
     }
-    if (task.is_recurring === true) {
-      // Recurring: spawn a one-off copy on the target date
-      const payload = { title: task.title, section: task.section, is_recurring: false, days_of_week: [], specific_date: targetDateStr, time_of_day: task.time_of_day }
-      const { data, error } = await supabase.from('tasks').insert(payload).select().single()
-      if (error) { console.error('[moveTask] insert error:', error); return }
-      if (data) setTasks(prev => [...prev, data])
-    } else {
-      const { data, error } = await supabase.from('tasks').update({ specific_date: targetDateStr }).eq('id', task.id).select().single()
-      if (error) { console.error('[moveTask] update error:', error); return }
-      if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
-    }
+    // Recurring tasks are defined by their weekly schedule — skip drag-to-date
+    if (task.is_recurring === true) return
+    const { data, error } = await supabase.from('tasks').update({ specific_date: targetDateStr }).eq('id', task.id).select().single()
+    if (error) { console.error('[moveTask] update error:', error); return }
+    if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
   }
 
   function getEventTypeStyle(key) {
@@ -231,9 +248,12 @@ export default function App() {
     const dateStr = toDateStr(date)
     const dayName = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()]
     return tasks.filter(t => {
-      if (t.is_recurring === true) {
-        const dow = t.days_of_week
-        return Array.isArray(dow) && dow.length > 0 && dow.includes(dayName)
+      if (t.is_habit) return false
+      if (t.is_recurring) {
+        if (!t.days_of_week?.includes(dayName)) return false
+        if (t.start_date && dateStr < t.start_date) return false
+        if (t.end_date && dateStr > t.end_date) return false
+        return true
       }
       return t.specific_date === dateStr
     })
@@ -326,7 +346,7 @@ export default function App() {
     onAddTask:   (sectionKey, date) => setTaskModal({ defaultSection: sectionKey, defaultDate: date }),
     onAddEvent:  (date, initialTitle) => setEventModal({ date, initialTitle }),
     onEditEvent: (event) => setEventModal({ event }),
-    navigate, activeView, setActiveView, getEventTypeStyle, moveTask, createEventFromTask, updateTaskSection,
+    navigate, activeView, setActiveView, getEventTypeStyle, moveTask, assignTask, moveEvent, createEventFromTask, updateTaskSection,
   }
 
   const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
@@ -396,6 +416,7 @@ export default function App() {
           toggleCompletion={toggleCompletion}
           createTask={createTask}
           saveTask={saveTask}
+          updateTaskTitle={updateTaskTitle}
           deleteTask={deleteTask}
           onEditTask={(task) => setTaskModal({ task })}
           onAddHabit={() => setTaskModal({ defaultRecurring: true, defaultIsHabit: true })}

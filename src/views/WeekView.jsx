@@ -19,7 +19,7 @@ export default function WeekView({
   getWeightTarget, getWeightEntry,
   toggleCompletion, saveWeight, deleteTask, deleteEvent,
   onEditTask, onAddTask, onAddEvent, onEditEvent,
-  sections, getEventTypeStyle, moveTask, createEventFromTask, updateTaskSection,
+  sections, getEventTypeStyle, moveTask, assignTask, moveEvent, createEventFromTask, updateTaskSection,
 }) {
   const isMobile = useIsMobile()
   const weekStart = startOfWeek(currentDate)
@@ -58,6 +58,11 @@ export default function WeekView({
     setDragOver(null)
     const data = parseDrag(e)
     if (!data) return
+    // Event drag between day columns
+    if (data.isEvent) {
+      if (data.fromDateStr !== targetDateStr) moveEvent(data.eventId, targetDateStr)
+      return
+    }
     const task = tasks?.find(t => String(t.id) === String(data.taskId))
     if (!task) return
     if (area === 'events' && data.fromSidebar) {
@@ -105,42 +110,45 @@ export default function WeekView({
               borderRight: di < 6 ? '1px solid #e0d9d0' : 'none',
             }}>
 
-              {/* DAY HEADER — on Fridays with a weight target, weight lives inline */}
+              {/* DAY HEADER */}
               <div
                 onClick={() => { setCurrentDate(day); setActiveView('Day') }}
                 style={{
                   background: headerBg,
                   borderBottom: '1.5px solid #c0b8ae',
                   padding: '6px 10px',
-                  display: 'flex', alignItems: 'center', gap: 4,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   cursor: 'pointer', flexShrink: 0,
                   ...(isPast ? dimmed : {}),
                 }}
               >
-                <span style={{ fontSize: 13, fontWeight: 400, color: '#2C2C2C', flexShrink: 0 }}>{DAY_ABBREV[day.getDay()]}</span>
-                {isFriday(day) && wtTarget ? (
-                  <>
-                    <span style={{ fontSize: 12, color: '#c0b8ae', margin: '0 2px' }}>|</span>
-                    <span style={{ fontSize: 11, color: '#4A8C40', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
-                    <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                      {editingWeightDate === dateStr ? (
-                        <input
-                          autoFocus type="number" step="0.1" value={weightVal}
-                          onChange={e => setWeightVal(e.target.value)}
-                          onBlur={() => handleWeightBlur(dateStr)}
-                          style={{ fontSize: 11, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 38, fontFamily: 'inherit', fontWeight: 600 }}
-                        />
-                      ) : (
-                        <span
-                          onClick={() => { setEditingWeightDate(dateStr); setWeightVal(wtEntry?.actual_weight ?? '') }}
-                          style={{ fontSize: 11, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
-                        >{wtEntry?.actual_weight ?? ''}</span>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 600, color: '#2C2C2C' }}>{day.getDate()}</span>
-                )}
+                {/* Left: day name + weight on Fridays */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: 1 }}>
+                  <span style={{ fontSize: 13, fontWeight: 400, color: '#2C2C2C', flexShrink: 0 }}>{DAY_ABBREV[day.getDay()]}</span>
+                  {isFriday(day) && wtTarget && (
+                    <>
+                      <span style={{ fontSize: 12, color: '#c0b8ae', flexShrink: 0 }}>|</span>
+                      <span style={{ fontSize: 11, color: '#4A8C40', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
+                      <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
+                        {editingWeightDate === dateStr ? (
+                          <input
+                            autoFocus type="number" step="0.1" value={weightVal}
+                            onChange={e => setWeightVal(e.target.value)}
+                            onBlur={() => handleWeightBlur(dateStr)}
+                            style={{ fontSize: 11, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 38, fontFamily: 'inherit', fontWeight: 600 }}
+                          />
+                        ) : (
+                          <span
+                            onClick={() => { setEditingWeightDate(dateStr); setWeightVal(wtEntry?.actual_weight ?? '') }}
+                            style={{ fontSize: 11, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
+                          >{wtEntry?.actual_weight ?? ''}</span>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+                {/* Right: date number always visible */}
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', flexShrink: 0 }}>{day.getDate()}</span>
               </div>
 
               {/* EVENTS AREA */}
@@ -157,8 +165,15 @@ export default function WeekView({
               >
                 {dayEvents.map(ev => {
                   const s = getEventTypeStyle(ev.event_type)
+                  const isVirtual = String(ev.id).startsWith('virtual_')
                   return (
-                    <div key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3 }}>
+                    <div key={ev.id}
+                      draggable={!isVirtual}
+                      onDragStart={!isVirtual ? (e => {
+                        e.dataTransfer.effectAllowed = 'move'
+                        e.dataTransfer.setData('application/json', JSON.stringify({ eventId: ev.id, fromDateStr: dateStr, isEvent: true }))
+                      }) : undefined}
+                      style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 3, cursor: isVirtual ? 'default' : 'grab' }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.bg, flexShrink: 0 }} />
                       <span
                         onClick={() => setTappedEvent(tappedEvent === ev.id ? null : ev.id)}
@@ -213,9 +228,17 @@ export default function WeekView({
                           e.preventDefault(); e.stopPropagation(); setSectionDragOver(null)
                           try {
                             const data = JSON.parse(e.dataTransfer.getData('application/json'))
+                            if (data.isEvent) return // ignore event drags on section headers
                             const task = tasks?.find(t => String(t.id) === String(data.taskId))
-                            if (task && task.section !== sec.key) updateTaskSection(task.id, sec.key)
-                            else if (task && data.fromDateStr && data.fromDateStr !== dateStr) moveTask(task, dateStr)
+                            if (!task) return
+                            if (data.fromSidebar) {
+                              // To Do item → assign to this date + section
+                              assignTask(task, dateStr, sec.key)
+                            } else if (task.section !== sec.key) {
+                              updateTaskSection(task.id, sec.key)
+                            } else if (data.fromDateStr && data.fromDateStr !== dateStr) {
+                              moveTask(task, dateStr)
+                            }
                           } catch {}
                         }}
                         style={{

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { toDateStr, startOfWeek, addDays, getDaysInMonth, getFirstDayOfMonth, MONTH_SHORT } from '../utils.js'
 
 const DOW_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
@@ -38,7 +38,7 @@ export default function Sidebar({
   open, isMobile, onClose,
   tasks, completions, sections, eventTypes,
   currentDate, toggleCompletion, createTask,
-  saveTask, deleteTask, onEditTask, onAddHabit, moveTask,
+  saveTask, updateTaskTitle, deleteTask, onEditTask, onAddHabit, moveTask,
   setDeleteConfirm, setSectionModal, setEventTypes,
 }) {
   const [panelOpen, setPanelOpen] = useState({ todo: true, habits: true, taskSections: false, eventTypes: false })
@@ -51,11 +51,24 @@ export default function Sidebar({
   const [editTodoVal, setEditTodoVal]   = useState('')
 
   // Habit tracker state
-  const [habitView, setHabitView]       = useState('week')
-  const [habitNavDate, setHabitNavDate] = useState(new Date())
-  const [hoveredHabit, setHoveredHabit] = useState(null)
-  const [addingHabit, setAddingHabit]   = useState(false)
+  const [habitView, setHabitView]         = useState('week')
+  const [habitNavDate, setHabitNavDate]   = useState(new Date())
+  const [hoveredHabit, setHoveredHabit]   = useState(null)
+  const [addingHabit, setAddingHabit]     = useState(false)
   const [newHabitTitle, setNewHabitTitle] = useState('')
+  const [editingHabit, setEditingHabit]   = useState(null)
+  const [editHabitVal, setEditHabitVal]   = useState('')
+  const habitInputRef = useRef(null)
+
+  // Focus the input whenever we enter habit-edit mode
+  useEffect(() => {
+    if (editingHabit !== null && habitInputRef.current) {
+      habitInputRef.current.focus()
+      // move cursor to end
+      const len = habitInputRef.current.value.length
+      habitInputRef.current.setSelectionRange(len, len)
+    }
+  }, [editingHabit])
 
   // To Do drop zone
   const [todoDropOver, setTodoDropOver] = useState(false)
@@ -117,6 +130,14 @@ export default function Sidebar({
     setEditingTodo(null)
     if (trimmed && trimmed !== task.title) {
       await saveTask({ ...task, title: trimmed })
+    }
+  }
+
+  async function saveHabitEdit(task) {
+    const trimmed = editHabitVal.trim()
+    setEditingHabit(null)
+    if (trimmed && trimmed !== task.title) {
+      await updateTaskTitle(task.id, trimmed)
     }
   }
 
@@ -351,12 +372,12 @@ export default function Sidebar({
                 {/* ─── WEEK VIEW ─── */}
                 {habitView === 'week' && (
                   <>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr repeat(7, 18px)', columnGap: 4, marginBottom: 3, alignItems: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(50px,1fr) repeat(7, 15px)', columnGap: 3, marginBottom: 3, alignItems: 'center' }}>
                       <div />
                       {habitWeekDays.map((day, i) => {
                         const ds = toDateStr(day)
                         return (
-                          <div key={i} style={{ fontSize: 11, fontWeight: 700, color: ds === todayStr ? '#5B8ED6' : '#2C2C2C', textAlign: 'center' }}>
+                          <div key={i} style={{ fontSize: 10, fontWeight: 700, color: ds === todayStr ? '#5B8ED6' : '#2C2C2C', textAlign: 'center' }}>
                             {DOW_LETTERS[i]}
                           </div>
                         )
@@ -366,14 +387,41 @@ export default function Sidebar({
                       <div key={task.id}
                         onMouseEnter={() => setHoveredHabit(task.id)}
                         onMouseLeave={() => setHoveredHabit(null)}
-                        style={{ display: 'grid', gridTemplateColumns: '1fr repeat(7, 18px)', columnGap: 4, padding: '5px 0', alignItems: 'center', borderBottom: '1px solid #f5f2ee' }}
+                        style={{ display: 'grid', gridTemplateColumns: 'minmax(50px,1fr) repeat(7, 15px)', columnGap: 3, padding: '5px 0', alignItems: 'center', borderBottom: '1px solid #f5f2ee' }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 3, overflow: 'hidden' }}>
-                          <span style={{ fontSize: 12, color: '#2C2C2C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={task.title}>{task.title}</span>
-                          {hoveredHabit === task.id && (
-                            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                              <button onClick={() => setDeleteConfirm({ type: 'task', id: task.id, name: task.title })} style={{ ...habitActionBtn, color: '#C62828' }}>×</button>
-                            </div>
+                        <div
+                          style={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0, cursor: editingHabit === task.id ? 'default' : 'text' }}
+                          onMouseDown={e => {
+                            if (editingHabit !== task.id) {
+                              e.preventDefault()
+                              setEditingHabit(task.id)
+                              setEditHabitVal(task.title)
+                            }
+                          }}
+                        >
+                          {editingHabit === task.id ? (
+                            <input
+                              ref={habitInputRef}
+                              value={editHabitVal}
+                              onChange={e => setEditHabitVal(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter')  { e.preventDefault(); saveHabitEdit(task) }
+                                if (e.key === 'Escape') { e.preventDefault(); setEditingHabit(null) }
+                              }}
+                              onBlur={() => saveHabitEdit(task)}
+                              style={{ fontSize: 12, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0', minWidth: 0 }}
+                            />
+                          ) : (
+                            <span
+                              style={{ fontSize: 12, color: '#2C2C2C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, userSelect: 'none' }}
+                              title={task.title}
+                            >{task.title}</span>
+                          )}
+                          {hoveredHabit === task.id && editingHabit !== task.id && (
+                            <button
+                              onClick={e => { e.stopPropagation(); setDeleteConfirm({ type: 'task', id: task.id, name: task.title }) }}
+                              style={{ ...habitActionBtn, color: '#C62828', flexShrink: 0 }}
+                            >×</button>
                           )}
                         </div>
                         {habitWeekDays.map((day, di) => {
@@ -385,7 +433,7 @@ export default function Sidebar({
                             <div key={di}
                               onClick={() => toggleCompletion(task.id, ds)}
                               style={{
-                                width: 18, height: 18, borderRadius: 3,
+                                width: 15, height: 15, borderRadius: 3,
                                 border: `1.5px solid ${checked ? '#4A8C40' : '#ccc'}`,
                                 background: checked ? '#4A8C40' : 'transparent',
                                 cursor: 'pointer', justifySelf: 'center',
@@ -393,7 +441,7 @@ export default function Sidebar({
                                 transition: 'all .1s', flexShrink: 0,
                               }}
                             >
-                              {checked && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                              {checked && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1, fontWeight: 700 }}>✓</span>}
                             </div>
                           )
                         })}
@@ -409,10 +457,10 @@ export default function Sidebar({
                           value={newHabitTitle}
                           onChange={e => setNewHabitTitle(e.target.value)}
                           onKeyDown={e => {
-                            if (e.key === 'Enter') submitHabit()
-                            if (e.key === 'Escape') { setAddingHabit(false); setNewHabitTitle('') }
+                            if (e.key === 'Enter')  { e.preventDefault(); submitHabit() }
+                            if (e.key === 'Escape') { e.preventDefault(); setAddingHabit(false); setNewHabitTitle('') }
                           }}
-                          onBlur={submitHabit}
+                          onBlur={() => { if (newHabitTitle.trim()) submitHabit(); else { setAddingHabit(false); setNewHabitTitle('') } }}
                           placeholder="Habit name…"
                           style={{ fontSize: 12, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0' }}
                         />
