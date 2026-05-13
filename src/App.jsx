@@ -124,9 +124,10 @@ export default function App() {
   }
 
   async function saveTask(taskData) {
-    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, end_date } = taskData
+    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, start_date, end_date } = taskData
     const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day,
-      end_date: end_date || null,
+      start_date: start_date || null,
+      end_date:   end_date   || null,
     }
     if (is_habit !== undefined) payload.is_habit = !!is_habit
     if (end_time) payload.end_time = end_time

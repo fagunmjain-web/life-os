@@ -16,8 +16,8 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
   const [isRecurring, setIsRecurring] = useState(task ? (task.is_recurring ?? false) : (defaultRecurring ?? false))
   const [isHabit]                   = useState(task?.is_habit ?? defaultIsHabit ?? false)
   const [days, setDays]             = useState(task?.days_of_week || [])
-  const [startDate, setStartDate]   = useState(task?.start_date || '')          // recurring start date
-  const [specificDate, setSpecificDate] = useState(task?.specific_date || defaultDate || '') // one-off date
+  const [startDate, setStartDate]       = useState(task?.start_date || '')
+  const [specificDate, setSpecificDate] = useState(task?.specific_date || defaultDate || '')
   const [endDate, setEndDate]       = useState(task?.end_date || '')
   const [startTime, setStartTime]   = useState(task?.time_of_day || '')
   const [endTime, setEndTime]       = useState(task?.end_time || '')
@@ -35,11 +35,11 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
       is_recurring: isRecurring,
       is_habit: isHabit,
       days_of_week: isRecurring ? days : [],
-      specific_date: isRecurring ? null : specificDate || null,
+      specific_date: isRecurring ? null : (specificDate || null),
+      start_date: startDate || null,
       end_date: endDate || null,
       time_of_day: startTime || null,
       ...(endTime ? { end_time: endTime } : {}),
-      ...(isRecurring && startDate ? { start_date: startDate } : {}),
     })
   }
 
