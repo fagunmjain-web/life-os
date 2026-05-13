@@ -1,16 +1,20 @@
 import { useState } from 'react'
 
 const SWATCHES = [
-  { bg: '#C8E6C0', sb: '#E8F5E4', cb: '#4A8C40', ct: '#2C4A24' },
-  { bg: '#FFCDD2', sb: '#FFEBEE', cb: '#C62828', ct: '#5C1A1A' },
-  { bg: '#E1BEE7', sb: '#F3E5F5', cb: '#7B1FA2', ct: '#3A1245' },
-  { bg: '#BBDEFB', sb: '#E3F2FD', cb: '#1565C0', ct: '#0D2E5C' },
-  { bg: '#FFF9C4', sb: '#FFFDE7', cb: '#F9A825', ct: '#4A3B00' },
-  { bg: '#FFE0B2', sb: '#FFF3E0', cb: '#E65100', ct: '#4E2100' },
-  { bg: '#F8BBD9', sb: '#FCE4EC', cb: '#C2185B', ct: '#880E4F' },
-  { bg: '#B2DFDB', sb: '#E0F2F1', cb: '#00796B', ct: '#004D40' },
-  { bg: '#D7CCC8', sb: '#EFEBE9', cb: '#5D4037', ct: '#3E2723' },
-  { bg: '#CFD8DC', sb: '#ECEFF1', cb: '#455A64', ct: '#263238' },
+  { sh: '#C8D9C8', sb: '#EEF3EE', cb: '#6F8F72', ct: '#2C3D2D' }, // Health
+  { sh: '#C8CCE0', sb: '#ECEEF6', cb: '#5F6FA8', ct: '#252D45' }, // Work
+  { sh: '#D9D0CC', sb: '#F2EDEB', cb: '#8A756B', ct: '#3A2F2B' }, // Admin
+  { sh: '#C0D5D4', sb: '#EBF3F2', cb: '#4F7F7A', ct: '#1E3331' }, // Chores
+  { sh: '#EAC0CF', sb: '#F9EBF1', cb: '#C24D7A', ct: '#4D1E30' }, // Social
+  { sh: '#EDD4B0', sb: '#FAF0E3', cb: '#D8902F', ct: '#573A12' }, // Travel
+  { sh: '#D4C8E8', sb: '#F0EBF8', cb: '#8B6FAF', ct: '#362850' }, // Dusty Violet
+  { sh: '#D9CBC6', sb: '#F2EDEB', cb: '#7A5A4F', ct: '#3A2520' }, // Cocoa Brown
+  { sh: '#CCCFBB', sb: '#EEEEE8', cb: '#6C7551', ct: '#2C2E1E' }, // Deep Olive
+  { sh: '#EBC9C2', sb: '#FAEEE9', cb: '#D47B6A', ct: '#5A2E25' }, // Muted Coral
+  { sh: '#C8DDD0', sb: '#EEF4F0', cb: '#7CA08A', ct: '#2E4035' }, // Eucalyptus
+  { sh: '#C4D5E4', sb: '#EBF1F6', cb: '#7296B2', ct: '#2A3D4F' }, // Dusty Sky
+  { sh: '#E5D3A8', sb: '#F7F0E0', cb: '#B88A2E', ct: '#4A3712' }, // Honey Mustard
+  { sh: '#E0C8D5', sb: '#F5ECF2', cb: '#A06C86', ct: '#3D2534' }, // Warm Mauve
 ]
 
 export default function SectionModal({ onSave, onClose }) {
@@ -23,7 +27,7 @@ export default function SectionModal({ onSave, onClose }) {
     onSave({
       key: name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now(),
       label: name.trim(),
-      sh: s.bg, sb: s.sb, cb: s.cb, ct: s.ct,
+      sh: s.sh, sb: s.sb, cb: s.cb, ct: s.ct,
     })
   }
 
@@ -40,7 +44,7 @@ export default function SectionModal({ onSave, onClose }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {SWATCHES.map((s, i) => (
               <div key={i} onClick={() => setSelected(i)} style={{
-                width: 30, height: 30, borderRadius: 8, background: s.bg, cursor: 'pointer',
+                width: 30, height: 30, borderRadius: 8, background: s.sh, cursor: 'pointer',
                 border: selected === i ? '2.5px solid #2C2C2C' : '2px solid transparent',
               }} />
             ))}

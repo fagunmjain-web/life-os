@@ -7,13 +7,34 @@ const DEFAULT_WIDTH = 220
 const MIN_WIDTH     = 160
 const MAX_WIDTH     = 360
 
+const SECTION_SWATCHES = [
+  { sh: '#C8D9C8', sb: '#EEF3EE', cb: '#6F8F72', ct: '#2C3D2D' },
+  { sh: '#C8CCE0', sb: '#ECEEF6', cb: '#5F6FA8', ct: '#252D45' },
+  { sh: '#D9D0CC', sb: '#F2EDEB', cb: '#8A756B', ct: '#3A2F2B' },
+  { sh: '#C0D5D4', sb: '#EBF3F2', cb: '#4F7F7A', ct: '#1E3331' },
+  { sh: '#EAC0CF', sb: '#F9EBF1', cb: '#C24D7A', ct: '#4D1E30' },
+  { sh: '#EDD4B0', sb: '#FAF0E3', cb: '#D8902F', ct: '#573A12' },
+  { sh: '#D4C8E8', sb: '#F0EBF8', cb: '#8B6FAF', ct: '#362850' },
+  { sh: '#D9CBC6', sb: '#F2EDEB', cb: '#7A5A4F', ct: '#3A2520' },
+  { sh: '#CCCFBB', sb: '#EEEEE8', cb: '#6C7551', ct: '#2C2E1E' },
+  { sh: '#EBC9C2', sb: '#FAEEE9', cb: '#D47B6A', ct: '#5A2E25' },
+  { sh: '#C8DDD0', sb: '#EEF4F0', cb: '#7CA08A', ct: '#2E4035' },
+  { sh: '#C4D5E4', sb: '#EBF1F6', cb: '#7296B2', ct: '#2A3D4F' },
+  { sh: '#E5D3A8', sb: '#F7F0E0', cb: '#B88A2E', ct: '#4A3712' },
+  { sh: '#E0C8D5', sb: '#F5ECF2', cb: '#A06C86', ct: '#3D2534' },
+]
+
 const ET_PRESET_COLORS = [
-  { color: '#E57373', bg: '#FFEBEB', textColor: '#C62828' },
-  { color: '#5B8ED6', bg: '#E6F1FB', textColor: '#185FA5' },
-  { color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
-  { color: '#4A8C40', bg: '#E8F5E4', textColor: '#2C4A24' },
-  { color: '#7B1FA2', bg: '#F3E5F5', textColor: '#3A1245' },
-  { color: '#00796B', bg: '#E0F2F1', textColor: '#004D40' },
+  { color: '#A06C86', bg: '#F5ECF2', textColor: '#3D2534' },
+  { color: '#4F7DB3', bg: '#EBF1F8', textColor: '#1C3A5C' },
+  { color: '#B88A2E', bg: '#F7F0E0', textColor: '#4A3712' },
+  { color: '#6F8F72', bg: '#EEF3EE', textColor: '#2C3D2D' },
+  { color: '#5F6FA8', bg: '#ECEEF6', textColor: '#252D45' },
+  { color: '#4F7F7A', bg: '#EBF3F2', textColor: '#1E3331' },
+  { color: '#C24D7A', bg: '#F9EBF1', textColor: '#4D1E30' },
+  { color: '#8B6FAF', bg: '#F0EBF8', textColor: '#362850' },
+  { color: '#D8902F', bg: '#FAF0E3', textColor: '#573A12' },
+  { color: '#7CA08A', bg: '#EEF4F0', textColor: '#2E4035' },
 ]
 
 function Panel({ title, open, onToggle, children }) {
@@ -51,10 +72,12 @@ export default function Sidebar({
   const [editTodoVal, setEditTodoVal]   = useState('')
 
   // Section editing + drag state
-  const [editingSection, setEditingSection] = useState(null)
-  const [editSectionVal, setEditSectionVal] = useState('')
-  const [secDragIdx, setSecDragIdx]         = useState(null)
-  const [secDragOver, setSecDragOver]       = useState(null)
+  const [editingSection, setEditingSection]   = useState(null)
+  const [editSectionVal, setEditSectionVal]   = useState('')
+  const [secDragIdx, setSecDragIdx]           = useState(null)
+  const [secDragOver, setSecDragOver]         = useState(null)
+  const [coloringSection, setColoringSection] = useState(null)
+  const [coloringEventType, setColoringEventType] = useState(null)
 
   function saveSectionName(key) {
     const trimmed = editSectionVal.trim()
@@ -584,47 +607,66 @@ export default function Sidebar({
           <Panel title="Task Sections" open={panelOpen.taskSections} onToggle={() => toggle('taskSections')}>
             <div style={{ padding: '0 14px 12px' }}>
               {sections.map((s, idx) => (
-                <div
-                  key={s.key}
-                  draggable
-                  onDragStart={() => onSecDragStart(idx)}
-                  onDragEnter={() => onSecDragEnter(idx)}
-                  onDragOver={e => e.preventDefault()}
-                  onDragEnd={onSecDragEnd}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0',
-                    borderBottom: '1px solid #f5f2ee', cursor: 'grab',
-                    opacity: secDragIdx === idx ? 0.4 : 1,
-                    background: secDragOver === idx && secDragIdx !== idx ? '#f5f2ee' : 'transparent',
-                    transition: 'background .1s',
-                  }}
-                >
-                  {/* drag handle */}
-                  <span style={{ fontSize: 11, color: '#ccc', flexShrink: 0, lineHeight: 1, cursor: 'grab' }}>⠿</span>
-                  <div style={{ width: 11, height: 11, borderRadius: 2, background: s.cb, flexShrink: 0 }} />
-                  {editingSection === s.key ? (
-                    <input
-                      autoFocus
-                      value={editSectionVal}
-                      onChange={e => setEditSectionVal(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter')  { e.preventDefault(); saveSectionName(s.key) }
-                        if (e.key === 'Escape') { e.preventDefault(); setEditingSection(null) }
-                      }}
-                      onBlur={() => saveSectionName(s.key)}
-                      style={{ fontSize: 13, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '1px 0' }}
+                <div key={s.key}>
+                  <div
+                    draggable
+                    onDragStart={() => onSecDragStart(idx)}
+                    onDragEnter={() => onSecDragEnter(idx)}
+                    onDragOver={e => e.preventDefault()}
+                    onDragEnd={onSecDragEnd}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0',
+                      borderBottom: coloringSection === s.key ? 'none' : '1px solid #f5f2ee',
+                      cursor: 'grab',
+                      opacity: secDragIdx === idx ? 0.4 : 1,
+                      background: secDragOver === idx && secDragIdx !== idx ? '#f5f2ee' : 'transparent',
+                      transition: 'background .1s',
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: '#ccc', flexShrink: 0, lineHeight: 1, cursor: 'grab' }}>⠿</span>
+                    <div
+                      onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setColoringSection(coloringSection === s.key ? null : s.key) }}
+                      title="Change colour"
+                      style={{ width: 11, height: 11, borderRadius: 2, background: s.cb, flexShrink: 0, cursor: 'pointer', outline: coloringSection === s.key ? '2px solid #2C2C2C' : 'none', outlineOffset: 1 }}
                     />
-                  ) : (
+                    {editingSection === s.key ? (
+                      <input
+                        autoFocus
+                        value={editSectionVal}
+                        onChange={e => setEditSectionVal(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter')  { e.preventDefault(); saveSectionName(s.key) }
+                          if (e.key === 'Escape') { e.preventDefault(); setEditingSection(null) }
+                        }}
+                        onBlur={() => saveSectionName(s.key)}
+                        style={{ fontSize: 13, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '1px 0' }}
+                      />
+                    ) : (
+                      <span
+                        onMouseDown={e => { e.preventDefault(); setEditingSection(s.key); setEditSectionVal(s.label) }}
+                        style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+                      >{s.label}</span>
+                    )}
                     <span
-                      onMouseDown={e => { e.preventDefault(); setEditingSection(s.key); setEditSectionVal(s.label) }}
-                      style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
-                    >{s.label}</span>
+                      onMouseDown={e => e.stopPropagation()}
+                      onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })}
+                      style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}
+                    >×</span>
+                  </div>
+                  {coloringSection === s.key && (
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', padding: '6px 0 8px 19px', borderBottom: '1px solid #f5f2ee' }}>
+                      {SECTION_SWATCHES.map((sw, i) => (
+                        <div key={i}
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => {
+                            setSections(prev => prev.map(sec => sec.key === s.key ? { ...sec, sh: sw.sh, sb: sw.sb, cb: sw.cb, ct: sw.ct } : sec))
+                            setColoringSection(null)
+                          }}
+                          style={{ width: 16, height: 16, borderRadius: 3, background: sw.cb, cursor: 'pointer', border: s.cb === sw.cb ? '2px solid #2C2C2C' : '2px solid transparent' }}
+                        />
+                      ))}
+                    </div>
                   )}
-                  <span
-                    onMouseDown={e => e.stopPropagation()}
-                    onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })}
-                    style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}
-                  >×</span>
                 </div>
               ))}
               <div onClick={() => { if (isMobile) onClose(); setSectionModal(true) }}
@@ -638,11 +680,30 @@ export default function Sidebar({
           <Panel title="Event Types" open={panelOpen.eventTypes} onToggle={() => toggle('eventTypes')}>
             <div style={{ padding: '0 14px 12px' }}>
               {eventTypes.map(et => (
-                <div key={et.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f5f2ee' }}>
-                  <div style={{ width: 11, height: 11, borderRadius: 2, background: et.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{et.label}</span>
-                  <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })}
-                    style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}>×</span>
+                <div key={et.key}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: coloringEventType === et.key ? 'none' : '1px solid #f5f2ee' }}>
+                    <div
+                      onClick={() => setColoringEventType(coloringEventType === et.key ? null : et.key)}
+                      title="Change colour"
+                      style={{ width: 11, height: 11, borderRadius: 2, background: et.color, flexShrink: 0, cursor: 'pointer', outline: coloringEventType === et.key ? '2px solid #2C2C2C' : 'none', outlineOffset: 1 }}
+                    />
+                    <span style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{et.label}</span>
+                    <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })}
+                      style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}>×</span>
+                  </div>
+                  {coloringEventType === et.key && (
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', padding: '6px 0 8px 19px', borderBottom: '1px solid #f5f2ee' }}>
+                      {ET_PRESET_COLORS.map((c, i) => (
+                        <div key={i}
+                          onClick={() => {
+                            setEventTypes(prev => prev.map(x => x.key === et.key ? { ...x, color: c.color, bg: c.bg, textColor: c.textColor } : x))
+                            setColoringEventType(null)
+                          }}
+                          style={{ width: 16, height: 16, borderRadius: 3, background: c.color, cursor: 'pointer', border: et.color === c.color ? '2px solid #2C2C2C' : '2px solid transparent' }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
               {newEventType ? (
