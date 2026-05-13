@@ -29,7 +29,13 @@ export default function App() {
   const [sections, setSections]         = useState(() => {
     try {
       const saved = localStorage.getItem('life_os_sections')
-      return saved ? JSON.parse(saved) : DEFAULT_SECTIONS
+      if (!saved) return DEFAULT_SECTIONS
+      const stored = JSON.parse(saved)
+      // Refresh colours for built-in sections so palette changes take effect
+      return stored.map(s => {
+        const def = DEFAULT_SECTIONS.find(d => d.key === s.key)
+        return def ? { ...s, sh: def.sh, sb: def.sb, cb: def.cb, ct: def.ct } : s
+      })
     } catch { return DEFAULT_SECTIONS }
   })
   const [eventTypes, setEventTypes]     = useState(DEFAULT_EVENT_TYPES)
