@@ -39,7 +39,7 @@ export default function Sidebar({
   tasks, completions, sections, eventTypes,
   currentDate, toggleCompletion, createTask,
   saveTask, updateTaskTitle, deleteTask, onEditTask, onAddHabit, moveTask,
-  setDeleteConfirm, setSectionModal, setEventTypes,
+  setDeleteConfirm, setSectionModal, setSections, setEventTypes,
 }) {
   const [panelOpen, setPanelOpen] = useState({ todo: true, habits: true, taskSections: false, eventTypes: false })
 
@@ -49,6 +49,33 @@ export default function Sidebar({
   const [hoveredTodo, setHoveredTodo]   = useState(null)
   const [editingTodo, setEditingTodo]   = useState(null)
   const [editTodoVal, setEditTodoVal]   = useState('')
+
+  // Section editing + drag state
+  const [editingSection, setEditingSection] = useState(null)
+  const [editSectionVal, setEditSectionVal] = useState('')
+  const [secDragIdx, setSecDragIdx]         = useState(null)
+  const [secDragOver, setSecDragOver]       = useState(null)
+
+  function saveSectionName(key) {
+    const trimmed = editSectionVal.trim()
+    setEditingSection(null)
+    if (trimmed) setSections(prev => prev.map(s => s.key === key ? { ...s, label: trimmed } : s))
+  }
+
+  function onSecDragStart(idx) { setSecDragIdx(idx) }
+  function onSecDragEnter(idx) { setSecDragOver(idx) }
+  function onSecDragEnd() {
+    if (secDragIdx !== null && secDragOver !== null && secDragIdx !== secDragOver) {
+      setSections(prev => {
+        const next = [...prev]
+        const [item] = next.splice(secDragIdx, 1)
+        next.splice(secDragOver, 0, item)
+        return next
+      })
+    }
+    setSecDragIdx(null)
+    setSecDragOver(null)
+  }
 
   // Habit tracker state
   const [habitView, setHabitView]         = useState('week')
@@ -419,6 +446,7 @@ export default function Sidebar({
                           )}
                           {hoveredHabit === task.id && editingHabit !== task.id && (
                             <button
+                              onMouseDown={e => e.stopPropagation()}
                               onClick={e => { e.stopPropagation(); setDeleteConfirm({ type: 'task', id: task.id, name: task.title }) }}
                               style={{ ...habitActionBtn, color: '#C62828', flexShrink: 0 }}
                             >×</button>
@@ -555,12 +583,48 @@ export default function Sidebar({
           {/* ── TASK SECTIONS ─────────────────────────────────────────────── */}
           <Panel title="Task Sections" open={panelOpen.taskSections} onToggle={() => toggle('taskSections')}>
             <div style={{ padding: '0 14px 12px' }}>
-              {sections.map(s => (
-                <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f5f2ee' }}>
+              {sections.map((s, idx) => (
+                <div
+                  key={s.key}
+                  draggable
+                  onDragStart={() => onSecDragStart(idx)}
+                  onDragEnter={() => onSecDragEnter(idx)}
+                  onDragOver={e => e.preventDefault()}
+                  onDragEnd={onSecDragEnd}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0',
+                    borderBottom: '1px solid #f5f2ee', cursor: 'grab',
+                    opacity: secDragIdx === idx ? 0.4 : 1,
+                    background: secDragOver === idx && secDragIdx !== idx ? '#f5f2ee' : 'transparent',
+                    transition: 'background .1s',
+                  }}
+                >
+                  {/* drag handle */}
+                  <span style={{ fontSize: 11, color: '#ccc', flexShrink: 0, lineHeight: 1, cursor: 'grab' }}>⠿</span>
                   <div style={{ width: 11, height: 11, borderRadius: 2, background: s.cb, flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.label}</span>
-                  <span onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })}
-                    style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}>×</span>
+                  {editingSection === s.key ? (
+                    <input
+                      autoFocus
+                      value={editSectionVal}
+                      onChange={e => setEditSectionVal(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter')  { e.preventDefault(); saveSectionName(s.key) }
+                        if (e.key === 'Escape') { e.preventDefault(); setEditingSection(null) }
+                      }}
+                      onBlur={() => saveSectionName(s.key)}
+                      style={{ fontSize: 13, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '1px 0' }}
+                    />
+                  ) : (
+                    <span
+                      onMouseDown={e => { e.preventDefault(); setEditingSection(s.key); setEditSectionVal(s.label) }}
+                      style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+                    >{s.label}</span>
+                  )}
+                  <span
+                    onMouseDown={e => e.stopPropagation()}
+                    onClick={() => setDeleteConfirm({ type: 'section', key: s.key, name: s.label })}
+                    style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}
+                  >×</span>
                 </div>
               ))}
               <div onClick={() => { if (isMobile) onClose(); setSectionModal(true) }}

@@ -26,7 +26,12 @@ export default function App() {
   const [events, setEvents]             = useState([])
   const [weightTargets, setWeightTargets] = useState([])
   const [weightEntries, setWeightEntries] = useState([])
-  const [sections, setSections]         = useState(DEFAULT_SECTIONS)
+  const [sections, setSections]         = useState(() => {
+    try {
+      const saved = localStorage.getItem('life_os_sections')
+      return saved ? JSON.parse(saved) : DEFAULT_SECTIONS
+    } catch { return DEFAULT_SECTIONS }
+  })
   const [eventTypes, setEventTypes]     = useState(DEFAULT_EVENT_TYPES)
   const [loading, setLoading]           = useState(true)
   const [taskModal, setTaskModal]       = useState(null)
@@ -38,6 +43,7 @@ export default function App() {
   const touchStartX = useRef(null)
 
   useEffect(() => { loadAll() }, [])
+  useEffect(() => { localStorage.setItem('life_os_sections', JSON.stringify(sections)) }, [sections])
 
   // Keyboard shortcuts: t=today, d/w/m/y=views
   useEffect(() => {
@@ -424,6 +430,7 @@ export default function App() {
           moveTask={moveTask}
           setDeleteConfirm={setDeleteConfirm}
           setSectionModal={setSectionModal}
+          setSections={setSections}
           setEventTypes={setEventTypes}
         />
 

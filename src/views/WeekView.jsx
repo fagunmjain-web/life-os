@@ -257,7 +257,7 @@ export default function WeekView({
 
                       {isOpen && (
                         <div>
-                          {secTasks.map(task => (
+                          {secTasks.map((task, ti) => (
                             <div key={task.id}
                               draggable
                               onDragStart={e => {
@@ -269,7 +269,7 @@ export default function WeekView({
                               style={{
                                 display: 'flex', alignItems: 'flex-start', gap: 6,
                                 padding: '4px 10px',
-                                borderBottom: '1px dotted rgba(0,0,0,0.12)',
+                                borderBottom: ti < secTasks.length - 1 ? '1px dotted rgba(0,0,0,0.12)' : 'none',
                                 cursor: 'grab',
                               }}
                             >
