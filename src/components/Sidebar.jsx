@@ -80,7 +80,7 @@ export default function Sidebar({
   saveTask, updateTaskTitle, deleteTask, onEditTask, onAddHabit, moveTask,
   setDeleteConfirm, setSectionModal, setSections, setEventTypes,
 }) {
-  const [panelOpen, setPanelOpen] = useState({ todo: true, habits: true, taskSections: false, eventTypes: false })
+  const [panelOpen, setPanelOpen] = useState({ todo: true, habits: true, taskSections: false, eventTypes: false, notes: false })
 
   // To Do state
   const [addingTodo, setAddingTodo]     = useState(false)
@@ -143,6 +143,31 @@ export default function Sidebar({
 
   // Event type add state
   const [newEventType, setNewEventType] = useState(null)
+
+  // Notes state — persisted to localStorage
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('life_os_notes') || '[]') } catch { return [] }
+  })
+  const [addingNote, setAddingNote]   = useState(false)
+  const [newNoteText, setNewNoteText] = useState('')
+  const [editingNote, setEditingNote] = useState(null)
+  const [editNoteText, setEditNoteText] = useState('')
+  const [hoveredNote, setHoveredNote] = useState(null)
+
+  useEffect(() => { localStorage.setItem('life_os_notes', JSON.stringify(notes)) }, [notes])
+
+  function submitNote() {
+    const text = newNoteText.trim()
+    setAddingNote(false); setNewNoteText('')
+    if (!text) return
+    setNotes(prev => [...prev, { id: Date.now().toString(), text }])
+  }
+  function saveNoteEdit(id) {
+    const text = editNoteText.trim()
+    setEditingNote(null)
+    if (text) setNotes(prev => prev.map(n => n.id === id ? { ...n, text } : n))
+  }
+  function deleteNote(id) { setNotes(prev => prev.filter(n => n.id !== id)) }
 
   // Sidebar resize state
   const [sidebarWidth, setSidebarWidth] = useState(() => {
@@ -749,6 +774,66 @@ export default function Sidebar({
                 <div onClick={() => setNewEventType({ name: '', colorIdx: 0 })}
                   style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>
                   + Add event type
+                </div>
+              )}
+            </div>
+          </Panel>
+
+          {/* ── NOTES ─────────────────────────────────────────────────────── */}
+          <Panel title="Notes" open={panelOpen.notes} onToggle={() => toggle('notes')}>
+            <div style={{ padding: '0 14px 12px' }}>
+              {notes.map(n => (
+                <div key={n.id}
+                  onMouseEnter={() => setHoveredNote(n.id)}
+                  onMouseLeave={() => setHoveredNote(null)}
+                  style={{ padding: '7px 0', borderBottom: '1px solid #f5f2ee' }}
+                >
+                  {editingNote === n.id ? (
+                    <textarea
+                      autoFocus
+                      value={editNoteText}
+                      onChange={e => setEditNoteText(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Escape') { e.preventDefault(); setEditingNote(null) }
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveNoteEdit(n.id) }
+                      }}
+                      onBlur={() => saveNoteEdit(n.id)}
+                      style={{ width: '100%', fontSize: 13, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, padding: '2px 0', boxSizing: 'border-box', minHeight: 60 }}
+                    />
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <span
+                        onClick={() => { setEditingNote(n.id); setEditNoteText(n.text) }}
+                        style={{ fontSize: 13, color: '#2C2C2C', flex: 1, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: 'text' }}
+                      >{n.text}</span>
+                      {hoveredNote === n.id && (
+                        <button
+                          onClick={() => deleteNote(n.id)}
+                          style={{ background: 'none', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: 15, lineHeight: 1, flexShrink: 0, padding: '0 2px', outline: 'none', fontFamily: 'inherit', opacity: 0.55 }}
+                        >×</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {addingNote ? (
+                <div style={{ paddingTop: 8 }}>
+                  <textarea
+                    autoFocus
+                    value={newNoteText}
+                    onChange={e => setNewNoteText(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Escape') { e.preventDefault(); setAddingNote(false); setNewNoteText('') }
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submitNote() }
+                    }}
+                    onBlur={submitNote}
+                    placeholder="Type a note…"
+                    style={{ width: '100%', fontSize: 13, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, padding: '2px 0', boxSizing: 'border-box', minHeight: 60 }}
+                  />
+                </div>
+              ) : (
+                <div onClick={() => setAddingNote(true)} style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>
+                  + Add note
                 </div>
               )}
             </div>
