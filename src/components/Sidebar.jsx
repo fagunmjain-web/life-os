@@ -8,6 +8,7 @@ const MIN_WIDTH     = 160
 const MAX_WIDTH     = 360
 
 const SECTION_SWATCHES = [
+  // Muted palette
   { sh: '#C8D9C8', sb: '#EEF3EE', cb: '#6F8F72', ct: '#2C3D2D' },
   { sh: '#C8CCE0', sb: '#ECEEF6', cb: '#5F6FA8', ct: '#252D45' },
   { sh: '#D9D0CC', sb: '#F2EDEB', cb: '#8A756B', ct: '#3A2F2B' },
@@ -22,6 +23,15 @@ const SECTION_SWATCHES = [
   { sh: '#C4D5E4', sb: '#EBF1F6', cb: '#7296B2', ct: '#2A3D4F' },
   { sh: '#E5D3A8', sb: '#F7F0E0', cb: '#B88A2E', ct: '#4A3712' },
   { sh: '#E0C8D5', sb: '#F5ECF2', cb: '#A06C86', ct: '#3D2534' },
+  // Vibrant palette
+  { sh: '#FAC8A0', sb: '#FEF3EC', cb: '#D4601A', ct: '#5C2A08' },
+  { sh: '#FAD870', sb: '#FEFBE8', cb: '#C48A08', ct: '#5A3804' },
+  { sh: '#BCE09C', sb: '#F0FCE8', cb: '#5A9A18', ct: '#284808' },
+  { sh: '#A8E0DC', sb: '#E8FAF8', cb: '#0A8A80', ct: '#044440' },
+  { sh: '#B0C8EC', sb: '#EBF2FF', cb: '#1E5FA8', ct: '#0A2855' },
+  { sh: '#C8B4EC', sb: '#F0ECFF', cb: '#6B35E8', ct: '#320A7A' },
+  { sh: '#F0B4D8', sb: '#FCE8F4', cb: '#D42877', ct: '#5C1030' },
+  { sh: '#F0B8B8', sb: '#FEE8E8', cb: '#C01818', ct: '#5C0808' },
 ]
 
 const ET_PRESET_COLORS = [
@@ -35,6 +45,14 @@ const ET_PRESET_COLORS = [
   { color: '#8B6FAF', bg: '#F0EBF8', textColor: '#362850' },
   { color: '#D8902F', bg: '#FAF0E3', textColor: '#573A12' },
   { color: '#7CA08A', bg: '#EEF4F0', textColor: '#2E4035' },
+  { color: '#D4601A', bg: '#FEF3EC', textColor: '#5C2A08' },
+  { color: '#C48A08', bg: '#FEFBE8', textColor: '#5A3804' },
+  { color: '#5A9A18', bg: '#F0FCE8', textColor: '#284808' },
+  { color: '#0A8A80', bg: '#E8FAF8', textColor: '#044440' },
+  { color: '#1E5FA8', bg: '#EBF2FF', textColor: '#0A2855' },
+  { color: '#6B35E8', bg: '#F0ECFF', textColor: '#320A7A' },
+  { color: '#D42877', bg: '#FCE8F4', textColor: '#5C1030' },
+  { color: '#C01818', bg: '#FEE8E8', textColor: '#5C0808' },
 ]
 
 function Panel({ title, open, onToggle, children }) {
