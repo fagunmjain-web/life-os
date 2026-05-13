@@ -304,7 +304,7 @@ export default function WeekView({
                           ))}
                           <div
                             onClick={() => onAddTask(sec.key, dateStr)}
-                            style={{ padding: '4px 10px', fontSize: 11, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
+                            style={{ padding: '4px 10px', fontSize: 11, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, borderBottom: '1px solid #ede8e0' }}
                           >
                             <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
                             Add task
