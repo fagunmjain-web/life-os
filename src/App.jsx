@@ -13,9 +13,9 @@ import Sidebar from './components/Sidebar.jsx'
 import { useIsMobile } from './hooks/useIsMobile.js'
 
 const DEFAULT_EVENT_TYPES = [
-  { key: 'celebration', label: 'Celebrations', color: '#E57373', bg: '#FFEBEB', textColor: '#C62828' },
-  { key: 'important',   label: 'Important',    color: '#5B8ED6', bg: '#E6F1FB', textColor: '#185FA5' },
-  { key: 'travel',      label: 'Travel',       color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
+  { key: 'celebration', label: 'Celebrations', color: '#A06C86', bg: '#F5ECF2', textColor: '#3D2534' },
+  { key: 'important',   label: 'Important',    color: '#4F7DB3', bg: '#EBF1F8', textColor: '#1C3A5C' },
+  { key: 'travel',      label: 'Travel',       color: '#B88A2E', bg: '#F7F0E0', textColor: '#4A3712' },
 ]
 
 export default function App() {
@@ -513,7 +513,7 @@ function WeightInline({ target, entry, dateStr, saveWeight }) {
   }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#4A8C40', whiteSpace: 'nowrap' }}>Wt: {target.target_weight}kg</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: '#6F8F72', whiteSpace: 'nowrap' }}>Wt: {target.target_weight}kg</span>
       {editing ? (
         <input autoFocus type="number" step="0.1" value={val} onChange={e => setVal(e.target.value)} onBlur={handleBlur}
           style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 44, fontFamily: 'inherit' }}

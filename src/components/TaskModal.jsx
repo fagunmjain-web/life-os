@@ -137,7 +137,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
         </div>
 
         {saveError && (
-          <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 8, fontSize: 12, color: '#C62828' }}>
+          <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFF0F0', border: '1px solid #F5C6C6', borderRadius: 8, fontSize: 12, color: '#C62828' }}>
             {saveError}
           </div>
         )}

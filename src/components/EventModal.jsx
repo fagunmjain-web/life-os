@@ -3,9 +3,9 @@ import { toDateStr } from '../utils.js'
 import TimePicker from './TimePicker.jsx'
 
 const DEFAULT_EVENT_TYPES = [
-  { key: 'celebration', label: 'Celebrations', color: '#E57373', bg: '#FFEBEB', textColor: '#C62828' },
-  { key: 'important',   label: 'Important',    color: '#5B8ED6', bg: '#E6F1FB', textColor: '#185FA5' },
-  { key: 'travel',      label: 'Travel',       color: '#E65100', bg: '#FFF3E0', textColor: '#E65100' },
+  { key: 'celebration', label: 'Celebrations', color: '#A06C86', bg: '#F5ECF2', textColor: '#3D2534' },
+  { key: 'important',   label: 'Important',    color: '#4F7DB3', bg: '#EBF1F8', textColor: '#1C3A5C' },
+  { key: 'travel',      label: 'Travel',       color: '#B88A2E', bg: '#F7F0E0', textColor: '#4A3712' },
 ]
 
 export default function EventModal({ date, event, onSave, onUpdate, onClose, eventTypes, initialTitle }) {
@@ -73,7 +73,7 @@ export default function EventModal({ date, event, onSave, onUpdate, onClose, eve
             <span style={{ fontSize: 14, fontWeight: 600, color: '#2C2C2C' }}>Repeat annually</span>
             <div onClick={() => setRepeatAnnually(v => !v)} style={{
               width: 42, height: 24, borderRadius: 12, cursor: 'pointer', position: 'relative',
-              background: repeatAnnually ? '#E57373' : '#ddd', transition: 'background .2s',
+              background: repeatAnnually ? '#A06C86' : '#ddd', transition: 'background .2s',
             }}>
               <div style={{
                 position: 'absolute', top: 3, left: repeatAnnually ? 21 : 3,

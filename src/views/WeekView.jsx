@@ -130,7 +130,7 @@ export default function WeekView({
                   {isFriday(day) && wtTarget && (
                     <>
                       <span style={{ fontSize: 12, color: '#c0b8ae', flexShrink: 0 }}>|</span>
-                      <span style={{ fontSize: 11, color: '#4A8C40', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
+                      <span style={{ fontSize: 11, color: '#6F8F72', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
                       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                         {editingWeightDate === dateStr ? (
                           <input

@@ -73,14 +73,14 @@ export default function MonthView({
     if (weightVal !== '' && !isNaN(weightVal)) saveWeight(ds, parseFloat(weightVal))
   }
 
-  const rangeBg = '#FFE0B2'
+  const rangeBg = '#F7F0E0'
 
   return (
     <div style={{ paddingTop: 8 }}>
       {/* Day-of-week header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4, padding: '0 4px' }}>
         {DOW.map(d => (
-          <div key={d} style={{ fontSize: 12, fontWeight: 600, color: d === 'Fri' ? '#4A8C40' : '#aaa', textAlign: 'center', padding: '2px 0' }}>{d}</div>
+          <div key={d} style={{ fontSize: 12, fontWeight: 600, color: d === 'Fri' ? '#6F8F72' : '#aaa', textAlign: 'center', padding: '2px 0' }}>{d}</div>
         ))}
       </div>
 
@@ -147,19 +147,19 @@ export default function MonthView({
                       <div onClick={e => { e.stopPropagation(); onAddTask(null, ds); setOpenAddRow(null) }}
                         style={{ fontSize: 6, padding: '1px 3px', background: '#2C2C2C', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Task</div>
                       <div onClick={e => { e.stopPropagation(); onAddEvent(new Date(year, month, day)); setOpenAddRow(null) }}
-                        style={{ fontSize: 6, padding: '1px 3px', background: '#5B8ED6', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Event</div>
+                        style={{ fontSize: 6, padding: '1px 3px', background: '#4F7DB3', color: '#fff', borderRadius: 3, cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap' }}>Event</div>
                     </div>
                   )}
                 </div>
                 {today ? (
                   <div onClick={e => { e.stopPropagation(); goToDay(day) }} style={{
                     width: 22, height: 22, borderRadius: '50%',
-                    background: '#5B8ED6', color: '#fff',
+                    background: '#4F7DB3', color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
                   }}>{day}</div>
                 ) : (
-                  <span onClick={e => { e.stopPropagation(); goToDay(day) }} style={{ fontSize: 13, fontWeight: 700, color: range ? '#4E2100' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}>{day}</span>
+                  <span onClick={e => { e.stopPropagation(); goToDay(day) }} style={{ fontSize: 13, fontWeight: 700, color: range ? '#573A12' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}>{day}</span>
                 )}
               </div>
 
@@ -192,7 +192,7 @@ export default function MonthView({
 
                 {showWt && wTarget && (
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 'auto' }} onClick={e => e.stopPropagation()}>
-                    <span style={{ fontSize: 8, fontWeight: 700, color: '#4A8C40' }}>Wt:{wTarget.target_weight}kg</span>
+                    <span style={{ fontSize: 8, fontWeight: 700, color: '#6F8F72' }}>Wt:{wTarget.target_weight}kg</span>
                     {editingWeight === ds ? (
                       <input autoFocus type="number" step="0.1" value={weightVal}
                         onChange={e => setWeightVal(e.target.value)}

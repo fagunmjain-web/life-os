@@ -35,7 +35,7 @@ export default function DayView({
                 >{e.title}</span>
                 {tappedEvent === e.id && (
                   <div style={{ display: 'flex', gap: 3 }}>
-                    <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#E8F5E4','#2C4A24','#C8E6C0')}>✎</button>
+                    <button onClick={() => { onEditEvent(e); setTappedEvent(null) }} style={evActBtn('#EEF3EE','#2C3D2D','#C8D9C8')}>✎</button>
                     <button onClick={() => { deleteEvent(e.id); setTappedEvent(null) }} style={evActBtn('#FFEBEE','#C62828','#FFCDD2')}>✕</button>
                   </div>
                 )}

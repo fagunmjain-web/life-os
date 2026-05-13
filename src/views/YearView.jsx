@@ -106,9 +106,9 @@ export default function YearView({
                   const hasAnyEvent    = evs.length > 0
 
                   let bg = '#fff', br = '2px', border = '1px solid #f0f0f0'
-                  if (range === 'start') { bg = '#FFE0B2'; br = '2px 0 0 2px'; border = '1px solid #E65100' }
-                  if (range === 'mid')   { bg = '#FFE0B2'; br = '0';            border = '1px solid #f0f0f0' }
-                  if (range === 'end')   { bg = '#FFE0B2'; br = '0 2px 2px 0'; border = '1px solid #E65100' }
+                  if (range === 'start') { bg = '#F7F0E0'; br = '2px 0 0 2px'; border = '1px solid #D8902F' }
+                  if (range === 'mid')   { bg = '#F7F0E0'; br = '0';            border = '1px solid #f0f0f0' }
+                  if (range === 'end')   { bg = '#F7F0E0'; br = '0 2px 2px 0'; border = '1px solid #D8902F' }
 
                   const tooltipLines = evs.map(e =>
                     e.end_date
@@ -132,17 +132,17 @@ export default function YearView({
                       {today ? (
                         <div style={{
                           width: 17, height: 17, borderRadius: '50%',
-                          background: '#5B8ED6', color: '#fff',
+                          background: '#4F7DB3', color: '#fff',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: 9, fontWeight: 700, lineHeight: 1,
                         }}>{d}</div>
                       ) : (
-                        <span style={{ fontSize: 11, fontWeight: 500, color: range ? '#6D3200' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
+                        <span style={{ fontSize: 11, fontWeight: 500, color: range ? '#573A12' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
                       )}
                       {(hasCelebration || hasImportant) && (
                         <div style={{ display: 'flex', gap: 2, marginTop: 1 }}>
-                          {hasCelebration && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#E57373', flexShrink: 0 }} />}
-                          {hasImportant   && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#5B8ED6', flexShrink: 0 }} />}
+                          {hasCelebration && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#A06C86', flexShrink: 0 }} />}
+                          {hasImportant   && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#4F7DB3', flexShrink: 0 }} />}
                         </div>
                       )}
                     </div>

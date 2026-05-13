@@ -87,8 +87,8 @@ export default function Section({
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>✎</button>
                   <button onClick={() => onDeleteTask(task.id)} style={{
-                    width: 20, height: 20, borderRadius: 4, border: '1px solid #FFCDD2',
-                    background: '#FFEBEE', color: '#C62828', cursor: 'pointer', fontSize: 10,
+                    width: 20, height: 20, borderRadius: 4, border: '1px solid #F5C6C6',
+                    background: '#FFF0F0', color: '#C62828', cursor: 'pointer', fontSize: 10,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>✕</button>
                 </div>
