@@ -244,7 +244,7 @@ export default function WeekView({
                         style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                           padding: '3px 10px',
-                          borderBottom: `1.5px solid ${sec.sh}`,
+                          borderBottom: 'none',
                           cursor: 'pointer', userSelect: 'none',
                           color: sec.cb,
                           background: sectionDragOver === `${dateStr}_${sec.key}` ? sec.sb : 'transparent',
@@ -304,7 +304,7 @@ export default function WeekView({
                           ))}
                           <div
                             onClick={() => onAddTask(sec.key, dateStr)}
-                            style={{ padding: '4px 10px', fontSize: 11, color: sec.cb, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, opacity: 0.75 }}
+                            style={{ padding: '4px 10px', fontSize: 11, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
                           >
                             <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
                             Add task
