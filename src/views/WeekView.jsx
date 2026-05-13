@@ -96,6 +96,8 @@ export default function WeekView({
 
           const tasksBySection = {}
           sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
+          const knownKeys = new Set(sections.map(s => s.key))
+          const unassignedTasks = dayTasks.filter(t => !t.section || !knownKeys.has(t.section))
 
           const allDone  = isPast && dayTasks.length > 0 && dayTasks.every(t => isCompleted(t.id, dateStr))
           const headerBg = today ? '#f5f0e8' : (isPast ? '#e0ddd8' : '#ede5d8')
@@ -314,6 +316,40 @@ export default function WeekView({
                     </div>
                   )
                 })}
+
+                {/* Unassigned tasks (section deleted or null) */}
+                {unassignedTasks.length > 0 && (
+                  <div style={{ marginBottom: 5 }}>
+                    <div style={{ padding: '3px 10px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: '#aaa' }}>
+                      Unassigned
+                    </div>
+                    {unassignedTasks.map(task => (
+                      <div key={task.id}
+                        onMouseEnter={() => setHoveredTask(task.id)}
+                        onMouseLeave={() => setHoveredTask(null)}
+                        style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '4px 10px', cursor: 'default' }}
+                      >
+                        <div onClick={() => toggleCompletion(task.id, dateStr)} style={{
+                          width: 12, height: 12, borderRadius: 3, border: '1.5px solid #ccc',
+                          flexShrink: 0, cursor: 'pointer', marginTop: 1,
+                          background: isCompleted(task.id, dateStr) ? '#ccc' : 'transparent',
+                          transition: 'background .1s',
+                        }} />
+                        <span style={{
+                          fontSize: 12, color: '#888', flex: 1, lineHeight: 1.4,
+                          textDecoration: isCompleted(task.id, dateStr) ? 'line-through' : 'none',
+                          opacity: isCompleted(task.id, dateStr) ? 0.4 : 1,
+                        }}>{task.title}</span>
+                        {hoveredTask === task.id && (
+                          <div style={{ display: 'flex', gap: 2, flexShrink: 0, alignSelf: 'center' }}>
+                            <button onClick={() => onEditTask(task)} style={taskBtn}>✎</button>
+                            <button onClick={() => deleteTask(task.id)} style={{ ...taskBtn, color: '#C62828' }}>✕</button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
             </div>

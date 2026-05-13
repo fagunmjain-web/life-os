@@ -17,6 +17,8 @@ export default function DayView({
 
   const tasksBySection = {}
   sections.forEach(s => { tasksBySection[s.key] = dayTasks.filter(t => t.section === s.key) })
+  const knownKeys = new Set(sections.map(s => s.key))
+  const unassignedTasks = dayTasks.filter(t => !t.section || !knownKeys.has(t.section))
 
   return (
     <div style={{ paddingTop: 10 }}>
@@ -66,6 +68,19 @@ export default function DayView({
               </div>
             )
           })}
+          {unassignedTasks.length > 0 && (
+            <div style={sections.length % 2 !== 0 && !isMobile ? { gridColumn: '1 / -1' } : {}}>
+              <Section
+                sec={{ key: '__unassigned', label: 'Unassigned', sh: '#f0f0f0', sb: '#fafafa', cb: '#aaa', ct: '#666' }}
+                tasks={unassignedTasks}
+                dateStr={dateStr}
+                isCompleted={isCompleted}
+                toggleCompletion={toggleCompletion}
+                onEditTask={onEditTask}
+                onDeleteTask={deleteTask}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -183,6 +183,12 @@ export default function App() {
   async function deleteSection(sectionKey) {
     setSections(prev => prev.filter(s => s.key !== sectionKey))
     setDeleteConfirm(null)
+    // Null-out section for any tasks that were in this section
+    const affected = tasks.filter(t => t.section === sectionKey)
+    if (affected.length) {
+      await supabase.from('tasks').update({ section: null }).eq('section', sectionKey)
+      setTasks(prev => prev.map(t => t.section === sectionKey ? { ...t, section: null } : t))
+    }
   }
 
   async function saveEvent(eventData) {
