@@ -54,6 +54,8 @@ export default function Sidebar({
   const [habitView, setHabitView]       = useState('week')
   const [habitNavDate, setHabitNavDate] = useState(new Date())
   const [hoveredHabit, setHoveredHabit] = useState(null)
+  const [addingHabit, setAddingHabit]   = useState(false)
+  const [newHabitTitle, setNewHabitTitle] = useState('')
 
   // To Do drop zone
   const [todoDropOver, setTodoDropOver] = useState(false)
@@ -118,6 +120,22 @@ export default function Sidebar({
     }
   }
 
+  async function submitHabit() {
+    const trimmed = newHabitTitle.trim()
+    setAddingHabit(false)
+    setNewHabitTitle('')
+    if (!trimmed) return
+    await createTask({
+      title: trimmed,
+      section: sections[0]?.key || null,
+      is_habit: true,
+      is_recurring: true,
+      days_of_week: [],
+      specific_date: null,
+      time_of_day: null,
+    })
+  }
+
   function addEventType() {
     if (!newEventType?.name?.trim()) return
     const colors = ET_PRESET_COLORS[newEventType.colorIdx ?? 0]
@@ -131,14 +149,17 @@ export default function Sidebar({
   // Habit tracker helpers
   function getHabitPct(date) {
     if (!recurring.length) return null
-    const dow = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()]
+    const dow = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()]
     const applicable = recurring.filter(h => {
-      if (!Array.isArray(h.days_of_week) || h.days_of_week.length === 0) return true
-      return h.days_of_week.includes(dow)
+      const d = h.days_of_week
+      if (!Array.isArray(d) || d.length === 0) return true
+      return d.includes(dow)
     })
-    if (applicable.length === 0) return null
+    if (!applicable.length) return null
     const ds = toDateStr(date)
-    const done = applicable.filter(h => isTaskDone(h.id, ds)).length
+    const done = applicable.filter(h =>
+      completions.some(c => String(c.task_id) === String(h.id) && c.completed_date === ds)
+    ).length
     return done / applicable.length
   }
 
@@ -378,10 +399,29 @@ export default function Sidebar({
                         })}
                       </div>
                     ))}
-                    {recurring.length === 0 && (
+                    {recurring.length === 0 && !addingHabit && (
                       <div style={{ fontSize: 12, color: '#ccc', paddingTop: 4, paddingBottom: 4 }}>No habits yet</div>
                     )}
-                    <div onClick={onAddHabit} style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>+ Add new</div>
+                    {addingHabit && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', columnGap: 6, padding: '6px 0', alignItems: 'center', borderBottom: '1px solid #f5f2ee' }}>
+                        <input
+                          autoFocus
+                          value={newHabitTitle}
+                          onChange={e => setNewHabitTitle(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') submitHabit()
+                            if (e.key === 'Escape') { setAddingHabit(false); setNewHabitTitle('') }
+                          }}
+                          onBlur={submitHabit}
+                          placeholder="Habit name…"
+                          style={{ fontSize: 12, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0' }}
+                        />
+                        <button onClick={() => { setAddingHabit(false); setNewHabitTitle('') }} style={{ ...habitActionBtn, color: '#C62828', flexShrink: 0 }}>×</button>
+                      </div>
+                    )}
+                    {!addingHabit && (
+                      <div onClick={() => setAddingHabit(true)} style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>+ Add new</div>
+                    )}
                   </>
                 )}
 

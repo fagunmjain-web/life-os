@@ -105,43 +105,43 @@ export default function WeekView({
               borderRight: di < 6 ? '1px solid #e0d9d0' : 'none',
             }}>
 
-              {/* DAY HEADER */}
+              {/* DAY HEADER — on Fridays with a weight target, weight lives inline */}
               <div
                 onClick={() => { setCurrentDate(day); setActiveView('Day') }}
                 style={{
                   background: headerBg,
                   borderBottom: '1.5px solid #c0b8ae',
                   padding: '6px 10px',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  display: 'flex', alignItems: 'center', gap: 4,
                   cursor: 'pointer', flexShrink: 0,
                   ...(isPast ? dimmed : {}),
                 }}
               >
-                <span style={{ fontSize: 13, fontWeight: 400, color: '#2C2C2C' }}>{DAY_ABBREV[day.getDay()]}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#2C2C2C' }}>{day.getDate()}</span>
+                <span style={{ fontSize: 13, fontWeight: 400, color: '#2C2C2C', flexShrink: 0 }}>{DAY_ABBREV[day.getDay()]}</span>
+                {isFriday(day) && wtTarget ? (
+                  <>
+                    <span style={{ fontSize: 12, color: '#c0b8ae', margin: '0 2px' }}>|</span>
+                    <span style={{ fontSize: 11, color: '#4A8C40', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
+                    <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                      {editingWeightDate === dateStr ? (
+                        <input
+                          autoFocus type="number" step="0.1" value={weightVal}
+                          onChange={e => setWeightVal(e.target.value)}
+                          onBlur={() => handleWeightBlur(dateStr)}
+                          style={{ fontSize: 11, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 38, fontFamily: 'inherit', fontWeight: 600 }}
+                        />
+                      ) : (
+                        <span
+                          onClick={() => { setEditingWeightDate(dateStr); setWeightVal(wtEntry?.actual_weight ?? '') }}
+                          style={{ fontSize: 11, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
+                        >{wtEntry?.actual_weight ?? ''}</span>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 600, color: '#2C2C2C' }}>{day.getDate()}</span>
+                )}
               </div>
-
-              {/* WEIGHT ROW (Fridays only) */}
-              {isFriday(day) && wtTarget && (
-                <div style={{ padding: '4px 10px 0', flexShrink: 0, ...(isPast ? dimmed : {}) }}>
-                  <span style={{ fontSize: 11, color: '#4A8C40', fontWeight: 600 }}>
-                    Wt: {wtTarget.target_weight}kg{' '}
-                  </span>
-                  {editingWeightDate === dateStr ? (
-                    <input
-                      autoFocus type="number" step="0.1" value={weightVal}
-                      onChange={e => setWeightVal(e.target.value)}
-                      onBlur={() => handleWeightBlur(dateStr)}
-                      style={{ fontSize: 11, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 36, fontFamily: 'inherit', fontWeight: 600 }}
-                    />
-                  ) : (
-                    <span
-                      onClick={() => { setEditingWeightDate(dateStr); setWeightVal(wtEntry?.actual_weight ?? '') }}
-                      style={{ fontSize: 11, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
-                    >{wtEntry?.actual_weight ?? ''}</span>
-                  )}
-                </div>
-              )}
 
               {/* EVENTS AREA */}
               <div

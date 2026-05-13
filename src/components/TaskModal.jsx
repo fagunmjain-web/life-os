@@ -11,16 +11,16 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
     const v = e.target.value
     setTitle(v.length === 1 ? v.toUpperCase() : v)
   }
-  const [section, setSection] = useState(task?.section || defaultSection || sections[0]?.key || 'health')
-  const [isRecurring, setIsRecurring] = useState(
-    task ? (task.is_recurring ?? false) : (defaultRecurring ?? false)
-  )
-  const [isHabit] = useState(task?.is_habit ?? defaultIsHabit ?? false)
-  const [days, setDays] = useState(task?.days_of_week || [])
-  const [specificDate, setSpecificDate] = useState(task?.specific_date || defaultDate || '')
-  const [endDate, setEndDate] = useState(task?.end_date || '')
-  const [startTime, setStartTime] = useState(task?.time_of_day || '')
-  const [endTime, setEndTime] = useState(task?.end_time || '')
+
+  const [section, setSection]       = useState(task?.section || defaultSection || sections[0]?.key || 'health')
+  const [isRecurring, setIsRecurring] = useState(task ? (task.is_recurring ?? false) : (defaultRecurring ?? false))
+  const [isHabit]                   = useState(task?.is_habit ?? defaultIsHabit ?? false)
+  const [days, setDays]             = useState(task?.days_of_week || [])
+  const [startDate, setStartDate]   = useState(task?.start_date || '')          // recurring start date
+  const [specificDate, setSpecificDate] = useState(task?.specific_date || defaultDate || '') // one-off date
+  const [endDate, setEndDate]       = useState(task?.end_date || '')
+  const [startTime, setStartTime]   = useState(task?.time_of_day || '')
+  const [endTime, setEndTime]       = useState(task?.end_time || '')
 
   function toggleDay(d) {
     setDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
@@ -38,6 +38,8 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
       specific_date: isRecurring ? null : specificDate || null,
       end_date: endDate || null,
       time_of_day: startTime || null,
+      ...(endTime ? { end_time: endTime } : {}),
+      ...(isRecurring && startDate ? { start_date: startDate } : {}),
     })
   }
 
@@ -69,7 +71,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
 
         <Field label="Type">
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setIsRecurring(true)} style={{ ...typeBtn, ...(isRecurring ? typeBtnActive : {}) }}>Recurring</button>
+            <button onClick={() => setIsRecurring(true)}  style={{ ...typeBtn, ...(isRecurring  ? typeBtnActive : {}) }}>Recurring</button>
             <button onClick={() => setIsRecurring(false)} style={{ ...typeBtn, ...(!isRecurring ? typeBtnActive : {}) }}>One-off</button>
           </div>
         </Field>
@@ -89,30 +91,47 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
                 ))}
               </div>
             </Field>
-            <Field label="End date (optional)">
-              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={input} />
-            </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+              <div>
+                <div style={fieldLabelSm}>Start date (optional)</div>
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={input} />
+              </div>
+              <div>
+                <div style={fieldLabelSm}>End date (optional)</div>
+                <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={input} />
+              </div>
+            </div>
           </>
         ) : (
-          <Field label="Start date">
+          <Field label="Date">
             <input type="date" value={specificDate} onChange={e => setSpecificDate(e.target.value)} style={input} />
           </Field>
         )}
 
-        <Field label="Start time (optional)">
-          {startTime ? (
-            <div>
-              <TimePicker value={startTime} onChange={setStartTime} />
-              <button onClick={() => setStartTime('')} style={{ marginTop: 8, fontSize: 13, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>
-                Clear time
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => setStartTime('09:00')} style={{ fontSize: 14, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>
-              + Start time
-            </button>
-          )}
-        </Field>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div>
+            <div style={fieldLabelSm}>Start time</div>
+            {startTime ? (
+              <>
+                <TimePicker value={startTime} onChange={setStartTime} />
+                <button onClick={() => setStartTime('')} style={clearBtn}>Clear</button>
+              </>
+            ) : (
+              <button onClick={() => setStartTime('09:00')} style={addTimeBtn}>+ Start time</button>
+            )}
+          </div>
+          <div>
+            <div style={fieldLabelSm}>End time</div>
+            {endTime ? (
+              <>
+                <TimePicker value={endTime} onChange={setEndTime} />
+                <button onClick={() => setEndTime('')} style={clearBtn}>Clear</button>
+              </>
+            ) : (
+              <button onClick={() => setEndTime('10:00')} style={addTimeBtn}>+ End time</button>
+            )}
+          </div>
+        </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
           <button onClick={onClose} style={cancelBtn}>Cancel</button>
@@ -132,10 +151,13 @@ function Field({ label, children }) {
   )
 }
 
-const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }
-const modal = { background: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 440, border: '1px solid #EBEBEB', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' }
-const input = { width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 16, color: '#2C2C2C', background: '#f9f9f9', fontFamily: 'inherit', outline: 'none' }
-const typeBtn = { flex: 1, padding: '7px 0', fontSize: 14, fontWeight: 600, border: 'none', background: '#f5f5f5', color: '#888', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }
+const overlay     = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }
+const modal       = { background: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 440, border: '1px solid #EBEBEB', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' }
+const input       = { width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 14, color: '#2C2C2C', background: '#f9f9f9', fontFamily: 'inherit', outline: 'none' }
+const fieldLabelSm = { fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }
+const typeBtn     = { flex: 1, padding: '7px 0', fontSize: 14, fontWeight: 600, border: 'none', background: '#f5f5f5', color: '#888', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }
 const typeBtnActive = { background: '#2C2C2C', color: '#fff' }
-const saveBtn = { padding: '9px 24px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }
-const cancelBtn = { padding: '9px 16px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }
+const addTimeBtn  = { fontSize: 13, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 7, padding: '7px 10px', cursor: 'pointer', fontFamily: 'inherit', width: '100%', textAlign: 'left' }
+const clearBtn    = { marginTop: 4, fontSize: 12, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }
+const saveBtn     = { padding: '9px 24px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }
+const cancelBtn   = { padding: '9px 16px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }

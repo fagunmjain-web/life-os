@@ -113,18 +113,22 @@ export default function App() {
 
   // createTask: insert without closing any modal (used by Sidebar inline add)
   async function createTask(taskData) {
-    const { title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit } = taskData
+    const { title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, start_date } = taskData
     const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
     if (is_habit) payload.is_habit = is_habit
+    if (end_time)   payload.end_time   = end_time
+    if (start_date) payload.start_date = start_date
     const { data, error } = await supabase.from('tasks').insert(payload).select().single()
     if (error) { console.error('[createTask] error:', error); return }
     if (data) setTasks(prev => [...prev, data])
   }
 
   async function saveTask(taskData) {
-    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit } = taskData
+    const { id, title, section, is_recurring, days_of_week, specific_date, time_of_day, is_habit, end_time, start_date } = taskData
     const payload = { title, section, is_recurring, days_of_week, specific_date, time_of_day }
     if (is_habit !== undefined) payload.is_habit = !!is_habit
+    if (end_time)   payload.end_time   = end_time
+    if (start_date) payload.start_date = start_date
     if (id) {
       const { data, error } = await supabase.from('tasks').update(payload).eq('id', id).select().single()
       if (error) { console.error('[saveTask] update error:', error); return }
