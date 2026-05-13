@@ -139,11 +139,11 @@ export default function App() {
     if (end_time) payload.end_time = end_time
     if (id) {
       const { data, error } = await supabase.from('tasks').update(payload).eq('id', id).select().single()
-      if (error) { console.error('[saveTask] update error:', error); return }
+      if (error) { console.error('[saveTask] update error:', error); return error.message }
       if (data) setTasks(prev => prev.map(t => t.id === data.id ? data : t))
     } else {
       const { data, error } = await supabase.from('tasks').insert(payload).select().single()
-      if (error) { console.error('[saveTask] insert error:', error); return }
+      if (error) { console.error('[saveTask] insert error:', error); return error.message }
       if (data) setTasks(prev => [...prev, data])
     }
     setTaskModal(null)

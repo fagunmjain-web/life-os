@@ -6,6 +6,7 @@ const DAY_LABELS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 export default function TaskModal({ task, defaultSection, defaultDate, defaultRecurring, defaultIsHabit, sections, onSave, onClose }) {
   const [title, setTitle] = useState(task?.title || '')
+  const [saveError, setSaveError] = useState('')
 
   function handleTitleChange(e) {
     const v = e.target.value
@@ -26,9 +27,10 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
     setDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!title.trim()) return
-    onSave({
+    setSaveError('')
+    const err = await onSave({
       ...(task?.id ? { id: task.id } : {}),
       title: title.trim(),
       section,
@@ -41,6 +43,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
       time_of_day: startTime || null,
       ...(endTime ? { end_time: endTime } : {}),
     })
+    if (err) setSaveError(err)
   }
 
   return (
@@ -133,6 +136,11 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
           </div>
         </div>
 
+        {saveError && (
+          <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: 8, fontSize: 12, color: '#C62828' }}>
+            {saveError}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
           <button onClick={onClose} style={cancelBtn}>Cancel</button>
           <button onClick={handleSave} style={saveBtn}>Save task</button>
