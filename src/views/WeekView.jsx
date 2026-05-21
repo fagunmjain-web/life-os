@@ -216,7 +216,8 @@ export default function WeekView({
 
                   return (
                     <div key={sec.key} style={{
-                      marginBottom: 5,
+                      marginBottom: 4,
+                      borderRadius: 8, overflow: 'hidden',
                       filter: secGrey ? 'grayscale(0.9)' : 'none',
                       opacity: secGrey ? 0.5 : 1,
                       transition: 'filter .2s, opacity .2s',
@@ -230,11 +231,10 @@ export default function WeekView({
                           e.preventDefault(); e.stopPropagation(); setSectionDragOver(null)
                           try {
                             const data = JSON.parse(e.dataTransfer.getData('application/json'))
-                            if (data.isEvent) return // ignore event drags on section headers
+                            if (data.isEvent) return
                             const task = tasks?.find(t => String(t.id) === String(data.taskId))
                             if (!task) return
                             if (data.fromSidebar) {
-                              // To Do item → assign to this date + section
                               assignTask(task, dateStr, sec.key)
                             } else if (task.section !== sec.key) {
                               updateTaskSection(task.id, sec.key)
@@ -245,20 +245,19 @@ export default function WeekView({
                         }}
                         style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '3px 10px',
-                          borderBottom: 'none',
+                          padding: '3px 8px',
                           cursor: 'pointer', userSelect: 'none',
-                          color: sec.cb,
-                          background: sectionDragOver === `${dateStr}_${sec.key}` ? sec.sb : 'transparent',
+                          color: sec.ct,
+                          background: sectionDragOver === `${dateStr}_${sec.key}` ? sec.sh : sec.sb,
                           transition: 'background .1s',
                         }}
                       >
-                        <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{sec.label}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{sec.label}</span>
                         <Chevron open={isOpen} />
                       </div>
 
                       {isOpen && (
-                        <div>
+                        <div style={{ background: sec.sb, paddingBottom: 2 }}>
                           {secTasks.map((task, ti) => (
                             <div key={task.id}
                               draggable
@@ -269,30 +268,30 @@ export default function WeekView({
                               onMouseEnter={() => setHoveredTask(task.id)}
                               onMouseLeave={() => setHoveredTask(null)}
                               style={{
-                                display: 'flex', alignItems: 'flex-start', gap: 6,
-                                padding: '4px 10px',
-                                borderBottom: ti < secTasks.length - 1 ? '1px dotted rgba(0,0,0,0.12)' : 'none',
+                                display: 'flex', alignItems: 'flex-start', gap: 5,
+                                padding: '3px 8px',
+                                borderBottom: ti < secTasks.length - 1 ? `1px dotted rgba(0,0,0,0.08)` : 'none',
                                 cursor: 'grab',
                               }}
                             >
                               <div
                                 onClick={() => toggleCompletion(task.id, dateStr)}
                                 style={{
-                                  width: 12, height: 12, borderRadius: 3,
+                                  width: 11, height: 11, borderRadius: 3,
                                   border: `1.5px solid ${sec.cb}`,
-                                  flexShrink: 0, cursor: 'pointer', marginTop: 1,
+                                  flexShrink: 0, cursor: 'pointer', marginTop: 2,
                                   background: isCompleted(task.id, dateStr) ? sec.cb : 'transparent',
                                   transition: 'background .1s',
                                 }}
                               />
                               <span style={{
-                                fontSize: 14, color: '#2C2C2C', flex: 1, lineHeight: 1.4,
+                                fontSize: 12, color: sec.ct, flex: 1, lineHeight: 1.4,
                                 textDecoration: isCompleted(task.id, dateStr) ? 'line-through' : 'none',
                                 opacity: isCompleted(task.id, dateStr) ? 0.4 : 1,
                                 wordBreak: 'break-word',
                               }}>{task.title}</span>
                               {task.time_of_day && hoveredTask !== task.id && (
-                                <span style={{ fontSize: 12, color: '#bbb', flexShrink: 0, alignSelf: 'center', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontSize: 10, color: sec.cb, opacity: 0.7, flexShrink: 0, alignSelf: 'center', whiteSpace: 'nowrap' }}>
                                   {task.time_of_day.slice(0, 5)}
                                 </span>
                               )}
@@ -306,7 +305,7 @@ export default function WeekView({
                           ))}
                           <div
                             onClick={() => onAddTask(sec.key, dateStr)}
-                            style={{ padding: '4px 10px', fontSize: 13, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, borderBottom: '1px solid #ede8e0' }}
+                            style={{ padding: '3px 8px', fontSize: 11, color: sec.cb, opacity: 0.6, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3 }}
                           >
                             <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
                             Add task
