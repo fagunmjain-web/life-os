@@ -19,7 +19,7 @@ const DEFAULT_EVENT_TYPES = [
 ]
 
 export default function App() {
-  const [activeView, setActiveView]     = useState('Day')
+  const [activeView, setActiveView]     = useState('Week')
   const [currentDate, setCurrentDate]   = useState(new Date())
   const [tasks, setTasks]               = useState([])
   const [completions, setCompletions]   = useState([])
@@ -390,7 +390,7 @@ export default function App() {
               return (
                 <span key={v}
                   onClick={() => { if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') } else setActiveView(v) }}
-                  style={{ fontSize: 13, fontWeight: isActive ? 700 : 400, color: isActive ? '#2C2C2C' : '#aaa', cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none' }}
+                  style={{ fontSize: 15, fontWeight: isActive ? 700 : 400, color: isActive ? '#2C2C2C' : '#aaa', cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none' }}
                 >{v}</span>
               )
             })}
@@ -399,7 +399,7 @@ export default function App() {
           {/* Centre: ‹ date range › — absolutely centred in the full header */}
           <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
             <button onClick={() => navigate(-1)} style={navArrowBtn}>‹</button>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#2C2C2C', minWidth: 90, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
+            <div style={{ fontSize: 17, fontWeight: 600, color: '#2C2C2C', minWidth: 90, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
             <button onClick={() => navigate(1)}  style={navArrowBtn}>›</button>
           </div>
 
@@ -448,7 +448,7 @@ export default function App() {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 15 }}>Loading your life…</div>
+            <div style={{ textAlign: 'center', padding: 60, color: '#999', fontSize: 17 }}>Loading your life…</div>
           ) : (
             <div style={{ width: '100%', padding: '8px 16px 32px' }}>
               {activeView === 'Day'   && <DayView   {...sharedProps} />}
@@ -467,7 +467,7 @@ export default function App() {
           <div onClick={e => e.stopPropagation()}
             style={{ background: '#fff', borderRadius: 16, padding: 24, width: 280, textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 6 }}>Are you sure?</div>
-            <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>Delete "{deleteConfirm.name}"?</div>
+            <div style={{ fontSize: 15, color: '#888', marginBottom: 20 }}>Delete "{deleteConfirm.name}"?</div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
               <button onClick={() => setDeleteConfirm(null)} style={cancelBtn}>No</button>
               <button onClick={() => {
@@ -519,13 +519,13 @@ function WeightInline({ target, entry, dateStr, saveWeight }) {
   }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: '#6F8F72', whiteSpace: 'nowrap' }}>Wt: {target.target_weight}kg</span>
+      <span style={{ fontSize: 15, fontWeight: 700, color: '#6F8F72', whiteSpace: 'nowrap' }}>Wt: {target.target_weight}kg</span>
       {editing ? (
         <input autoFocus type="number" step="0.1" value={val} onChange={e => setVal(e.target.value)} onBlur={handleBlur}
-          style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 44, fontFamily: 'inherit' }}
+          style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C', border: 'none', borderBottom: '1.5px solid #aaa', background: 'transparent', outline: 'none', width: 44, fontFamily: 'inherit' }}
         />
       ) : (
-        <span onClick={() => setEditing(true)} style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', borderBottom: '1.5px solid #aaa', minWidth: 32, cursor: 'text', display: 'inline-block' }}>
+        <span onClick={() => setEditing(true)} style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C', borderBottom: '1.5px solid #aaa', minWidth: 32, cursor: 'text', display: 'inline-block' }}>
           {entry?.actual_weight ?? ''}
         </span>
       )}
@@ -534,5 +534,5 @@ function WeightInline({ target, entry, dateStr, saveWeight }) {
 }
 
 const navArrowBtn = { background: 'none', border: 'none', outline: 'none', boxShadow: 'none', fontSize: 24, color: '#888', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }
-const cancelBtn   = { padding: '9px 18px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }
-const yearBtn     = { padding: '6px 11px', fontSize: 12, fontWeight: 600, border: 'none', background: '#e8e8e8', color: '#2C2C2C', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }
+const cancelBtn   = { padding: '9px 18px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }
+const yearBtn     = { padding: '6px 11px', fontSize: 14, fontWeight: 600, border: 'none', background: '#e8e8e8', color: '#2C2C2C', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }

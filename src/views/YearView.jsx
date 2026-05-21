@@ -28,7 +28,7 @@ export default function YearView({
       {tooltip && (
         <div style={{
           position: 'fixed', left: tooltip.x + 14, top: tooltip.y + 14, zIndex: 1000,
-          background: '#2C2C2C', color: '#fff', fontSize: 11, borderRadius: 6,
+          background: '#2C2C2C', color: '#fff', fontSize: 13, borderRadius: 6,
           padding: '5px 10px', pointerEvents: 'none',
           boxShadow: '0 2px 10px rgba(0,0,0,0.25)', lineHeight: 1.6,
         }}>
@@ -81,14 +81,14 @@ export default function YearView({
               }}
             >
               {/* Month name */}
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#2C2C2C', marginBottom: 4, flexShrink: 0 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 4, flexShrink: 0 }}>
                 {MONTH_NAMES[mi]}
               </div>
 
               {/* DOW headers */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 1, marginBottom: 2, flexShrink: 0 }}>
                 {['M','T','W','T','F','S','S'].map((d, i) => (
-                  <div key={i} style={{ fontSize: 9, color: '#ccc', textAlign: 'center', fontWeight: 600 }}>{d}</div>
+                  <div key={i} style={{ fontSize: 11, color: '#ccc', textAlign: 'center', fontWeight: 600 }}>{d}</div>
                 ))}
               </div>
 
@@ -134,10 +134,10 @@ export default function YearView({
                           width: 17, height: 17, borderRadius: '50%',
                           background: '#4F7DB3', color: '#fff',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 9, fontWeight: 700, lineHeight: 1,
+                          fontSize: 11, fontWeight: 700, lineHeight: 1,
                         }}>{d}</div>
                       ) : (
-                        <span style={{ fontSize: 11, fontWeight: 500, color: range ? '#573A12' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: range ? '#573A12' : '#2C2C2C', lineHeight: 1 }}>{d}</span>
                       )}
                       {(hasCelebration || hasImportant) && (
                         <div style={{ display: 'flex', gap: 2, marginTop: 1 }}>

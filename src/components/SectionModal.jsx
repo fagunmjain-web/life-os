@@ -44,7 +44,7 @@ export default function SectionModal({ onSave, onClose }) {
   return (
     <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
       <div style={modal}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C', marginBottom: 18 }}>New section</div>
+        <div style={{ fontSize: 17, fontWeight: 700, color: '#2C2C2C', marginBottom: 18 }}>New section</div>
         <div style={{ marginBottom: 14 }}>
           <div style={fieldLabel}>Section name</div>
           <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Finance" style={input} />
@@ -71,7 +71,7 @@ export default function SectionModal({ onSave, onClose }) {
 
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }
 const modal = { background: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 380, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }
-const fieldLabel = { fontSize: 10, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5 }
-const input = { width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 13, color: '#2C2C2C', background: '#f9f9f9', fontFamily: 'inherit', outline: 'none' }
-const saveBtn = { padding: '9px 24px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }
-const cancelBtn = { padding: '9px 16px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }
+const fieldLabel = { fontSize: 12, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5 }
+const input = { width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 15, color: '#2C2C2C', background: '#f9f9f9', fontFamily: 'inherit', outline: 'none' }
+const saveBtn = { padding: '9px 24px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }
+const cancelBtn = { padding: '9px 16px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }

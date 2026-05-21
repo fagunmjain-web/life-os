@@ -100,7 +100,7 @@ export default function WeekView({
           const unassignedTasks = dayTasks.filter(t => !t.section || !knownKeys.has(t.section))
 
           const allDone  = isPast && dayTasks.length > 0 && dayTasks.every(t => isCompleted(t.id, dateStr))
-          const headerBg = today ? '#f5f0e8' : (isPast ? '#e0ddd8' : '#ede5d8')
+          const headerBg = today ? '#c4b8a8' : (isPast ? '#e0ddd8' : '#ede5d8')
           const colBg    = today ? '#fff' : (isPast ? (allDone ? '#eeebe6' : '#faf8f4') : '#faf8f4')
           const dimmed   = { filter: 'grayscale(0.9)', opacity: 0.55 }
 
@@ -126,23 +126,23 @@ export default function WeekView({
               >
                 {/* Left: day name + weight on Fridays */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: 1 }}>
-                  <span style={{ fontSize: 13, fontWeight: 400, color: '#2C2C2C', flexShrink: 0 }}>{DAY_ABBREV[day.getDay()]}</span>
+                  <span style={{ fontSize: 15, fontWeight: 400, color: '#2C2C2C', flexShrink: 0 }}>{DAY_ABBREV[day.getDay()]}</span>
                   {isFriday(day) && wtTarget && (
                     <>
-                      <span style={{ fontSize: 12, color: '#c0b8ae', flexShrink: 0 }}>|</span>
-                      <span style={{ fontSize: 11, color: '#6F8F72', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
+                      <span style={{ fontSize: 14, color: '#c0b8ae', flexShrink: 0 }}>|</span>
+                      <span style={{ fontSize: 13, color: '#6F8F72', fontWeight: 600, flexShrink: 0 }}>Wt: {wtTarget.target_weight}</span>
                       <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                         {editingWeightDate === dateStr ? (
                           <input
                             autoFocus type="number" step="0.1" value={weightVal}
                             onChange={e => setWeightVal(e.target.value)}
                             onBlur={() => handleWeightBlur(dateStr)}
-                            style={{ fontSize: 11, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 38, fontFamily: 'inherit', fontWeight: 600 }}
+                            style={{ fontSize: 13, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #aaa', background: 'transparent', outline: 'none', width: 38, fontFamily: 'inherit', fontWeight: 600 }}
                           />
                         ) : (
                           <span
                             onClick={() => { setEditingWeightDate(dateStr); setWeightVal(wtEntry?.actual_weight ?? '') }}
-                            style={{ fontSize: 11, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
+                            style={{ fontSize: 13, color: '#2C2C2C', borderBottom: '1px solid #aaa', minWidth: 28, display: 'inline-block', cursor: 'text', fontWeight: 600 }}
                           >{wtEntry?.actual_weight ?? ''}</span>
                         )}
                       </div>
@@ -150,7 +150,7 @@ export default function WeekView({
                   )}
                 </div>
                 {/* Right: date number always visible */}
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#2C2C2C', flexShrink: 0 }}>{day.getDate()}</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C', flexShrink: 0 }}>{day.getDate()}</span>
               </div>
 
               {/* EVENTS AREA */}
@@ -179,7 +179,7 @@ export default function WeekView({
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.bg, flexShrink: 0 }} />
                       <span
                         onClick={() => setTappedEvent(tappedEvent === ev.id ? null : ev.id)}
-                        style={{ fontSize: 11, color: s.labelColor, fontWeight: 500, flex: 1, cursor: 'pointer', lineHeight: 1.3 }}
+                        style={{ fontSize: 13, color: s.labelColor, fontWeight: 500, flex: 1, cursor: 'pointer', lineHeight: 1.3 }}
                       >{ev.title}</span>
                       {tappedEvent === ev.id && (
                         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
@@ -190,7 +190,7 @@ export default function WeekView({
                     </div>
                   )
                 })}
-                <div onClick={() => onAddEvent(day)} style={{ fontSize: 11, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, paddingTop: 1 }}>
+                <div onClick={() => onAddEvent(day)} style={{ fontSize: 13, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, paddingTop: 1 }}>
                   <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="#bbb" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
                   Add event
                 </div>
@@ -253,7 +253,7 @@ export default function WeekView({
                           transition: 'background .1s',
                         }}
                       >
-                        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{sec.label}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>{sec.label}</span>
                         <Chevron open={isOpen} />
                       </div>
 
@@ -286,13 +286,13 @@ export default function WeekView({
                                 }}
                               />
                               <span style={{
-                                fontSize: 12, color: '#2C2C2C', flex: 1, lineHeight: 1.4,
+                                fontSize: 14, color: '#2C2C2C', flex: 1, lineHeight: 1.4,
                                 textDecoration: isCompleted(task.id, dateStr) ? 'line-through' : 'none',
                                 opacity: isCompleted(task.id, dateStr) ? 0.4 : 1,
                                 wordBreak: 'break-word',
                               }}>{task.title}</span>
                               {task.time_of_day && hoveredTask !== task.id && (
-                                <span style={{ fontSize: 10, color: '#bbb', flexShrink: 0, alignSelf: 'center', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontSize: 12, color: '#bbb', flexShrink: 0, alignSelf: 'center', whiteSpace: 'nowrap' }}>
                                   {task.time_of_day.slice(0, 5)}
                                 </span>
                               )}
@@ -306,7 +306,7 @@ export default function WeekView({
                           ))}
                           <div
                             onClick={() => onAddTask(sec.key, dateStr)}
-                            style={{ padding: '4px 10px', fontSize: 11, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, borderBottom: '1px solid #ede8e0' }}
+                            style={{ padding: '4px 10px', fontSize: 13, color: '#bbb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, borderBottom: '1px solid #ede8e0' }}
                           >
                             <svg width="8" height="8" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2v8M2 6h8" /></svg>
                             Add task
@@ -320,7 +320,7 @@ export default function WeekView({
                 {/* Unassigned tasks (section deleted or null) */}
                 {unassignedTasks.length > 0 && (
                   <div style={{ marginBottom: 5 }}>
-                    <div style={{ padding: '3px 10px', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: '#aaa' }}>
+                    <div style={{ padding: '3px 10px', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: '#aaa' }}>
                       Unassigned
                     </div>
                     {unassignedTasks.map(task => (
@@ -336,7 +336,7 @@ export default function WeekView({
                           transition: 'background .1s',
                         }} />
                         <span style={{
-                          fontSize: 12, color: '#888', flex: 1, lineHeight: 1.4,
+                          fontSize: 14, color: '#888', flex: 1, lineHeight: 1.4,
                           textDecoration: isCompleted(task.id, dateStr) ? 'line-through' : 'none',
                           opacity: isCompleted(task.id, dateStr) ? 0.4 : 1,
                         }}>{task.title}</span>
@@ -362,12 +362,12 @@ export default function WeekView({
 
 const evBtn = {
   width: 16, height: 16, borderRadius: 3, border: 'none', background: '#f0f0f0',
-  color: '#555', cursor: 'pointer', fontSize: 9,
+  color: '#555', cursor: 'pointer', fontSize: 11,
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0,
 }
 
 const taskBtn = {
   width: 16, height: 16, borderRadius: 3, border: 'none', background: '#f0f0f0',
-  color: '#555', cursor: 'pointer', fontSize: 9,
+  color: '#555', cursor: 'pointer', fontSize: 11,
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0,
 }

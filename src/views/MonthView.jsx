@@ -80,7 +80,7 @@ export default function MonthView({
       {/* Day-of-week header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4, padding: '0 4px' }}>
         {DOW.map(d => (
-          <div key={d} style={{ fontSize: 12, fontWeight: 600, color: d === 'Fri' ? '#6F8F72' : '#aaa', textAlign: 'center', padding: '2px 0' }}>{d}</div>
+          <div key={d} style={{ fontSize: 14, fontWeight: 600, color: d === 'Fri' ? '#6F8F72' : '#aaa', textAlign: 'center', padding: '2px 0' }}>{d}</div>
         ))}
       </div>
 
@@ -140,7 +140,7 @@ export default function MonthView({
                   {overdue && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F9A825', flexShrink: 0 }} />}
                   <div
                     onClick={e => { e.stopPropagation(); setOpenAddRow(addOpen ? null : day) }}
-                    style={{ width: 13, height: 13, border: '1px solid #ccc', borderRadius: 3, background: addOpen ? '#2C2C2C' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: addOpen ? '#fff' : '#aaa', cursor: 'pointer', flexShrink: 0 }}
+                    style={{ width: 13, height: 13, border: '1px solid #ccc', borderRadius: 3, background: addOpen ? '#2C2C2C' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: addOpen ? '#fff' : '#aaa', cursor: 'pointer', flexShrink: 0 }}
                   >+</div>
                   {addOpen && (
                     <div style={{ display: 'flex', gap: 2, flex: 1, minWidth: 0 }}>
@@ -156,10 +156,10 @@ export default function MonthView({
                     width: 22, height: 22, borderRadius: '50%',
                     background: '#4F7DB3', color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
+                    fontSize: 14, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
                   }}>{day}</div>
                 ) : (
-                  <span onClick={e => { e.stopPropagation(); goToDay(day) }} style={{ fontSize: 13, fontWeight: 700, color: range ? '#573A12' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}>{day}</span>
+                  <span onClick={e => { e.stopPropagation(); goToDay(day) }} style={{ fontSize: 15, fontWeight: 700, color: range ? '#573A12' : '#2C2C2C', cursor: 'pointer', flexShrink: 0 }}>{day}</span>
                 )}
               </div>
 
@@ -169,7 +169,7 @@ export default function MonthView({
                   const s = getEventTypeStyle(e.event_type)
                   return (
                     <div key={e.id} style={{
-                      fontSize: 9, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
+                      fontSize: 11, fontWeight: 600, padding: '1px 4px', borderRadius: 4,
                       background: s.bg, color: s.textColor, flexShrink: 0,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{e.title}</div>

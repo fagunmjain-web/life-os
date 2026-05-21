@@ -62,7 +62,7 @@ function Panel({ title, open, onToggle, children }) {
         onClick={onToggle}
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', cursor: 'pointer', userSelect: 'none' }}
       >
-        <span style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em' }}>{title}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em' }}>{title}</span>
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="#bbb" strokeWidth="1.8"
           style={{ flexShrink: 0, transition: 'transform .2s', transform: open ? 'rotate(-90deg)' : 'rotate(90deg)' }}>
           <path d="M3 2L7 5L3 8" />
@@ -120,7 +120,7 @@ export default function Sidebar({
 
   // Habit tracker state
   const [habitView, setHabitView]         = useState('week')
-  const [habitNavDate, setHabitNavDate]   = useState(new Date())
+  const [habitNavDate, setHabitNavDate]   = useState(() => startOfWeek(new Date()))
   const [hoveredHabit, setHoveredHabit]   = useState(null)
   const [addingHabit, setAddingHabit]     = useState(false)
   const [newHabitTitle, setNewHabitTitle] = useState('')
@@ -392,18 +392,18 @@ export default function Sidebar({
                         if (e.key === 'Escape') setEditingTodo(null)
                       }}
                       onBlur={() => saveTodoEdit(task)}
-                      style={{ fontSize: 13, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0' }}
+                      style={{ fontSize: 15, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0' }}
                     />
                   ) : (
                     <span
                       onClick={() => { setEditingTodo(task.id); setEditTodoVal(task.title) }}
-                      style={{ fontSize: 13, color: '#2C2C2C', flex: 1, lineHeight: 1.4, wordBreak: 'break-word', cursor: 'text' }}
+                      style={{ fontSize: 15, color: '#2C2C2C', flex: 1, lineHeight: 1.4, wordBreak: 'break-word', cursor: 'text' }}
                     >{task.title}</span>
                   )}
                   {hoveredTodo === task.id && editingTodo !== task.id && (
                     <button
                       onClick={() => setDeleteConfirm({ type: 'task', id: task.id, name: task.title })}
-                      style={{ background: 'none', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: 15, lineHeight: 1, flexShrink: 0, padding: '0 2px', outline: 'none', fontFamily: 'inherit', alignSelf: 'center' }}
+                      style={{ background: 'none', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: 17, lineHeight: 1, flexShrink: 0, padding: '0 2px', outline: 'none', fontFamily: 'inherit', alignSelf: 'center' }}
                     >×</button>
                   )}
                 </div>
@@ -415,11 +415,11 @@ export default function Sidebar({
                     onKeyDown={e => { if (e.key === 'Enter') submitTodo(); if (e.key === 'Escape') { setAddingTodo(false); setNewTodoTitle('') } }}
                     onBlur={submitTodo}
                     placeholder="Task name…"
-                    style={{ width: '100%', fontSize: 13, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0', boxSizing: 'border-box' }}
+                    style={{ width: '100%', fontSize: 15, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0', boxSizing: 'border-box' }}
                   />
                 </div>
               ) : (
-                <div onClick={() => setAddingTodo(true)} style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>
+                <div onClick={() => setAddingTodo(true)} style={{ paddingTop: 8, fontSize: 14, color: '#bbb', cursor: 'pointer' }}>
                   + Add new
                 </div>
               )}
@@ -433,13 +433,13 @@ export default function Sidebar({
               onClick={() => toggle('habits')}
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', cursor: 'pointer', userSelect: 'none' }}
             >
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em' }}>Habit Tracker</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em' }}>Habit Tracker</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }} onClick={e => e.stopPropagation()}>
                 {panelOpen.habits && ['week', 'month', 'year'].map(v => (
                   <button key={v}
                     onClick={e => { e.stopPropagation(); setHabitView(v) }}
                     style={{
-                      fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+                      fontSize: 12, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
                       background: habitView === v ? '#2C2C2C' : '#f0f0f0',
                       color: habitView === v ? '#fff' : '#888',
                       cursor: 'pointer', fontFamily: 'inherit',
@@ -458,20 +458,22 @@ export default function Sidebar({
                 {/* Nav row */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
                   <button onClick={() => navigateHabit(-1)} style={habitNavBtn}>‹</button>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#2C2C2C', minWidth: 80, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHabitLabel()}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#2C2C2C', minWidth: 80, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHabitLabel()}</span>
                   <button onClick={() => navigateHabit(1)} style={habitNavBtn}>›</button>
                 </div>
 
                 {/* ─── WEEK VIEW ─── */}
                 {habitView === 'week' && (
                   <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(50px,1fr) repeat(7, 15px)', columnGap: 3, marginBottom: 3, alignItems: 'center' }}>
+                    {/* Header row: name col + one 20px cell per day */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(50px,1fr) repeat(7, 20px)', columnGap: 2, marginBottom: 3, alignItems: 'center' }}>
                       <div />
                       {habitWeekDays.map((day, i) => {
                         const ds = toDateStr(day)
+                        const isT = ds === todayStr
                         return (
-                          <div key={i} style={{ fontSize: 10, fontWeight: 700, color: ds === todayStr ? '#5B8ED6' : '#2C2C2C', textAlign: 'center' }}>
-                            {DOW_LETTERS[i]}
+                          <div key={i} style={{ width: 20, height: 20, borderRadius: '50%', background: isT ? '#5B8ED6' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: isT ? '#fff' : '#2C2C2C', lineHeight: 1 }}>{DOW_LETTERS[i]}</span>
                           </div>
                         )
                       })}
@@ -480,7 +482,7 @@ export default function Sidebar({
                       <div key={task.id}
                         onMouseEnter={() => setHoveredHabit(task.id)}
                         onMouseLeave={() => setHoveredHabit(null)}
-                        style={{ display: 'grid', gridTemplateColumns: 'minmax(50px,1fr) repeat(7, 15px)', columnGap: 3, padding: '5px 0', alignItems: 'center', borderBottom: '1px solid #f5f2ee' }}
+                        style={{ display: 'grid', gridTemplateColumns: 'minmax(50px,1fr) repeat(7, 20px)', columnGap: 2, padding: '5px 0', alignItems: 'center', borderBottom: '1px solid #f5f2ee' }}
                       >
                         <div
                           style={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0, cursor: editingHabit === task.id ? 'default' : 'text' }}
@@ -502,11 +504,11 @@ export default function Sidebar({
                                 if (e.key === 'Escape') { e.preventDefault(); setEditingHabit(null) }
                               }}
                               onBlur={() => saveHabitEdit(task)}
-                              style={{ fontSize: 12, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0', minWidth: 0 }}
+                              style={{ fontSize: 14, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0', minWidth: 0 }}
                             />
                           ) : (
                             <span
-                              style={{ fontSize: 12, color: '#2C2C2C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, userSelect: 'none' }}
+                              style={{ fontSize: 14, color: '#2C2C2C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, userSelect: 'none' }}
                               title={task.title}
                             >{task.title}</span>
                           )}
@@ -520,29 +522,33 @@ export default function Sidebar({
                         </div>
                         {habitWeekDays.map((day, di) => {
                           const ds = toDateStr(day)
+                          const isT = ds === todayStr
                           const applicable = !Array.isArray(task.days_of_week) || task.days_of_week.length === 0 || task.days_of_week.includes(DOW_KEYS[di])
                           const checked    = applicable && isTaskDone(task.id, ds)
-                          if (!applicable) return <div key={di} />
                           return (
-                            <div key={di}
-                              onClick={() => toggleCompletion(task.id, ds)}
-                              style={{
-                                width: 15, height: 15, borderRadius: 3,
-                                border: `1.5px solid ${checked ? '#4A8C40' : '#ccc'}`,
-                                background: checked ? '#4A8C40' : 'transparent',
-                                cursor: 'pointer', justifySelf: 'center',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                transition: 'all .1s', flexShrink: 0,
-                              }}
-                            >
-                              {checked && <span style={{ color: '#fff', fontSize: 9, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                            <div key={di} style={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: isT ? '#EBF3FF' : 'transparent', borderRadius: 3 }}>
+                              {applicable && (
+                                <div
+                                  onClick={() => toggleCompletion(task.id, ds)}
+                                  style={{
+                                    width: 14, height: 14, borderRadius: 3,
+                                    border: `1.5px solid ${checked ? '#4A8C40' : '#ccc'}`,
+                                    background: checked ? '#4A8C40' : 'transparent',
+                                    cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    transition: 'all .1s',
+                                  }}
+                                >
+                                  {checked && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                                </div>
+                              )}
                             </div>
                           )
                         })}
                       </div>
                     ))}
                     {recurring.length === 0 && !addingHabit && (
-                      <div style={{ fontSize: 12, color: '#ccc', paddingTop: 4, paddingBottom: 4 }}>No habits yet</div>
+                      <div style={{ fontSize: 14, color: '#ccc', paddingTop: 4, paddingBottom: 4 }}>No habits yet</div>
                     )}
                     {addingHabit && (
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', columnGap: 6, padding: '6px 0', alignItems: 'center', borderBottom: '1px solid #f5f2ee' }}>
@@ -556,13 +562,13 @@ export default function Sidebar({
                           }}
                           onBlur={() => { if (newHabitTitle.trim()) submitHabit(); else { setAddingHabit(false); setNewHabitTitle('') } }}
                           placeholder="Habit name…"
-                          style={{ fontSize: 12, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0' }}
+                          style={{ fontSize: 14, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '2px 0' }}
                         />
                         <button onClick={() => { setAddingHabit(false); setNewHabitTitle('') }} style={{ ...habitActionBtn, color: '#C62828', flexShrink: 0 }}>×</button>
                       </div>
                     )}
                     {!addingHabit && (
-                      <div onClick={() => setAddingHabit(true)} style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>+ Add new</div>
+                      <div onClick={() => setAddingHabit(true)} style={{ paddingTop: 8, fontSize: 14, color: '#bbb', cursor: 'pointer' }}>+ Add new</div>
                     )}
                   </>
                 )}
@@ -572,7 +578,7 @@ export default function Sidebar({
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', columnGap: 2, marginBottom: 3 }}>
                       {DOW_LETTERS.map((l, i) => (
-                        <div key={i} style={{ fontSize: 10, fontWeight: 700, color: '#2C2C2C', textAlign: 'center' }}>{l}</div>
+                        <div key={i} style={{ fontSize: 12, fontWeight: 700, color: '#2C2C2C', textAlign: 'center' }}>{l}</div>
                       ))}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', columnGap: 2, rowGap: 2 }}>
@@ -600,7 +606,7 @@ export default function Sidebar({
                             )}
                             <span style={{
                               position: 'relative', zIndex: 1,
-                              fontSize: 9, fontWeight: ds === todayStr ? 700 : 400,
+                              fontSize: 11, fontWeight: ds === todayStr ? 700 : 400,
                               color: ds === todayStr ? '#5B8ED6' : '#2C2C2C',
                             }}>{day}</span>
                           </div>
@@ -608,7 +614,7 @@ export default function Sidebar({
                       })}
                     </div>
                     {recurring.length === 0 && (
-                      <div style={{ fontSize: 12, color: '#ccc', paddingTop: 8 }}>No habits yet</div>
+                      <div style={{ fontSize: 14, color: '#ccc', paddingTop: 8 }}>No habits yet</div>
                     )}
                   </>
                 )}
@@ -634,7 +640,7 @@ export default function Sidebar({
                             ? `linear-gradient(to top, rgba(74,140,64,0.65) ${avgPct*100}%, #f0ece6 ${avgPct*100}%)`
                             : '#f0ece6',
                           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                          paddingBottom: 4, fontSize: 10, fontWeight: 600, color: '#2C2C2C',
+                          paddingBottom: 4, fontSize: 12, fontWeight: 600, color: '#2C2C2C',
                         }}>
                           {MONTH_SHORT[m]}
                         </div>
@@ -666,7 +672,7 @@ export default function Sidebar({
                       transition: 'background .1s',
                     }}
                   >
-                    <span style={{ fontSize: 11, color: '#ccc', flexShrink: 0, lineHeight: 1, cursor: 'grab' }}>⠿</span>
+                    <span style={{ fontSize: 13, color: '#ccc', flexShrink: 0, lineHeight: 1, cursor: 'grab' }}>⠿</span>
                     <div
                       onMouseDown={e => { e.preventDefault(); e.stopPropagation(); setColoringSection(coloringSection === s.key ? null : s.key) }}
                       title="Change colour"
@@ -682,12 +688,12 @@ export default function Sidebar({
                           if (e.key === 'Escape') { e.preventDefault(); setEditingSection(null) }
                         }}
                         onBlur={() => saveSectionName(s.key)}
-                        style={{ fontSize: 13, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '1px 0' }}
+                        style={{ fontSize: 15, flex: 1, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', color: '#2C2C2C', padding: '1px 0' }}
                       />
                     ) : (
                       <span
                         onMouseDown={e => { e.preventDefault(); setEditingSection(s.key); setEditSectionVal(s.label) }}
-                        style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
+                        style={{ fontSize: 15, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'text' }}
                       >{s.label}</span>
                     )}
                     <span
@@ -713,7 +719,7 @@ export default function Sidebar({
                 </div>
               ))}
               <div onClick={() => { if (isMobile) onClose(); setSectionModal(true) }}
-                style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>
+                style={{ paddingTop: 8, fontSize: 14, color: '#bbb', cursor: 'pointer' }}>
                 + Add section
               </div>
             </div>
@@ -730,7 +736,7 @@ export default function Sidebar({
                       title="Change colour"
                       style={{ width: 11, height: 11, borderRadius: 2, background: et.color, flexShrink: 0, cursor: 'pointer', outline: coloringEventType === et.key ? '2px solid #2C2C2C' : 'none', outlineOffset: 1 }}
                     />
-                    <span style={{ fontSize: 13, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{et.label}</span>
+                    <span style={{ fontSize: 15, color: '#2C2C2C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{et.label}</span>
                     <span onClick={() => setDeleteConfirm({ type: 'eventType', key: et.key, name: et.label })}
                       style={{ fontSize: 16, color: '#C62828', cursor: 'pointer', lineHeight: 1, flexShrink: 0, opacity: 0.55 }}>×</span>
                   </div>
@@ -755,7 +761,7 @@ export default function Sidebar({
                     value={newEventType.name}
                     onChange={e => setNewEventType(p => ({ ...p, name: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && addEventType()}
-                    style={{ width: '100%', fontSize: 13, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', marginBottom: 8, color: '#2C2C2C', boxSizing: 'border-box' }}
+                    style={{ width: '100%', fontSize: 15, border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', marginBottom: 8, color: '#2C2C2C', boxSizing: 'border-box' }}
                   />
                   <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
                     {ET_PRESET_COLORS.map((c, i) => (
@@ -766,13 +772,13 @@ export default function Sidebar({
                     ))}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={addEventType} style={{ fontSize: 12, padding: '4px 10px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
-                    <button onClick={() => setNewEventType(null)} style={{ fontSize: 12, padding: '4px 10px', background: '#f0f0f0', color: '#888', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
+                    <button onClick={addEventType} style={{ fontSize: 14, padding: '4px 10px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Add</button>
+                    <button onClick={() => setNewEventType(null)} style={{ fontSize: 14, padding: '4px 10px', background: '#f0f0f0', color: '#888', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: 'inherit' }}>Cancel</button>
                   </div>
                 </div>
               ) : (
                 <div onClick={() => setNewEventType({ name: '', colorIdx: 0 })}
-                  style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>
+                  style={{ paddingTop: 8, fontSize: 14, color: '#bbb', cursor: 'pointer' }}>
                   + Add event type
                 </div>
               )}
@@ -798,18 +804,18 @@ export default function Sidebar({
                         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); saveNoteEdit(n.id) }
                       }}
                       onBlur={() => saveNoteEdit(n.id)}
-                      style={{ width: '100%', fontSize: 13, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, padding: '2px 0', boxSizing: 'border-box', minHeight: 60 }}
+                      style={{ width: '100%', fontSize: 15, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, padding: '2px 0', boxSizing: 'border-box', minHeight: 60 }}
                     />
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
                       <span
                         onClick={() => { setEditingNote(n.id); setEditNoteText(n.text) }}
-                        style={{ fontSize: 13, color: '#2C2C2C', flex: 1, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: 'text' }}
+                        style={{ fontSize: 15, color: '#2C2C2C', flex: 1, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', cursor: 'text' }}
                       >{n.text}</span>
                       {hoveredNote === n.id && (
                         <button
                           onClick={() => deleteNote(n.id)}
-                          style={{ background: 'none', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: 15, lineHeight: 1, flexShrink: 0, padding: '0 2px', outline: 'none', fontFamily: 'inherit', opacity: 0.55 }}
+                          style={{ background: 'none', border: 'none', color: '#C62828', cursor: 'pointer', fontSize: 17, lineHeight: 1, flexShrink: 0, padding: '0 2px', outline: 'none', fontFamily: 'inherit', opacity: 0.55 }}
                         >×</button>
                       )}
                     </div>
@@ -828,11 +834,11 @@ export default function Sidebar({
                     }}
                     onBlur={submitNote}
                     placeholder="Type a note…"
-                    style={{ width: '100%', fontSize: 13, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, padding: '2px 0', boxSizing: 'border-box', minHeight: 60 }}
+                    style={{ width: '100%', fontSize: 15, color: '#2C2C2C', border: 'none', borderBottom: '1px solid #ddd', background: 'transparent', outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, padding: '2px 0', boxSizing: 'border-box', minHeight: 60 }}
                   />
                 </div>
               ) : (
-                <div onClick={() => setAddingNote(true)} style={{ paddingTop: 8, fontSize: 12, color: '#bbb', cursor: 'pointer' }}>
+                <div onClick={() => setAddingNote(true)} style={{ paddingTop: 8, fontSize: 14, color: '#bbb', cursor: 'pointer' }}>
                   + Add note
                 </div>
               )}
@@ -860,6 +866,6 @@ const habitNavBtn = {
 
 const habitActionBtn = {
   width: 16, height: 16, borderRadius: 3, border: 'none', background: '#f0f0f0',
-  color: '#555', cursor: 'pointer', fontSize: 9,
+  color: '#555', cursor: 'pointer', fontSize: 11,
   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: 0,
 }

@@ -77,18 +77,18 @@ export default function Section({
                 whiteSpace: 'normal', overflow: 'visible', textOverflow: 'unset',
               }}>{task.title}</span>
               {task.time_of_day && (
-                <span style={{ fontSize: 11, color: sec.cb, opacity: .7, flexShrink: 0 }}>{task.time_of_day}</span>
+                <span style={{ fontSize: 13, color: sec.cb, opacity: .7, flexShrink: 0 }}>{task.time_of_day}</span>
               )}
               {hoveredTask === task.id && (
                 <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
                   <button onClick={() => onEditTask(task)} style={{
                     width: 20, height: 20, borderRadius: 4, border: `1px solid ${sec.sh}`,
-                    background: sec.sb, color: sec.ct, cursor: 'pointer', fontSize: 10,
+                    background: sec.sb, color: sec.ct, cursor: 'pointer', fontSize: 12,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>✎</button>
                   <button onClick={() => onDeleteTask(task.id)} style={{
                     width: 20, height: 20, borderRadius: 4, border: '1px solid #F5C6C6',
-                    background: '#FFF0F0', color: '#C62828', cursor: 'pointer', fontSize: 10,
+                    background: '#FFF0F0', color: '#C62828', cursor: 'pointer', fontSize: 12,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>✕</button>
                 </div>

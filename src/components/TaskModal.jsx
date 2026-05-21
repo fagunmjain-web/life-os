@@ -62,7 +62,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
           <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
             {sections.map(s => (
               <button key={s.key} onClick={() => setSection(s.key)} style={{
-                padding: '5px 10px', borderRadius: 7, fontSize: 13, fontWeight: 600,
+                padding: '5px 10px', borderRadius: 7, fontSize: 15, fontWeight: 600,
                 border: `1.5px solid ${s.cb}`, cursor: 'pointer', fontFamily: 'inherit',
                 background: section === s.key ? s.cb : s.sb,
                 color: section === s.key ? '#fff' : s.ct,
@@ -85,7 +85,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                 {DAY_OPTIONS.map((d, i) => (
                   <button key={d} onClick={() => toggleDay(d)} style={{
-                    padding: '5px 9px', fontSize: 13, fontWeight: 600, borderRadius: 7,
+                    padding: '5px 9px', fontSize: 15, fontWeight: 600, borderRadius: 7,
                     border: '1px solid', cursor: 'pointer', fontFamily: 'inherit',
                     background: days.includes(d) ? '#2C2C2C' : '#f5f5f5',
                     color: days.includes(d) ? '#fff' : '#888',
@@ -137,7 +137,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
         </div>
 
         {saveError && (
-          <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFF0F0', border: '1px solid #F5C6C6', borderRadius: 8, fontSize: 12, color: '#C62828' }}>
+          <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFF0F0', border: '1px solid #F5C6C6', borderRadius: 8, fontSize: 14, color: '#C62828' }}>
             {saveError}
           </div>
         )}
@@ -153,7 +153,7 @@ export default function TaskModal({ task, defaultSection, defaultDate, defaultRe
 function Field({ label, children }) {
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 5 }}>{label}</div>
       {children}
     </div>
   )
@@ -161,11 +161,11 @@ function Field({ label, children }) {
 
 const overlay     = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }
 const modal       = { background: '#fff', borderRadius: 16, padding: 24, width: '100%', maxWidth: 440, border: '1px solid #EBEBEB', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' }
-const input       = { width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 14, color: '#2C2C2C', background: '#f9f9f9', fontFamily: 'inherit', outline: 'none' }
-const fieldLabelSm = { fontSize: 11, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }
-const typeBtn     = { flex: 1, padding: '7px 0', fontSize: 14, fontWeight: 600, border: 'none', background: '#f5f5f5', color: '#888', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }
+const input       = { width: '100%', padding: '8px 12px', border: '1px solid #EBEBEB', borderRadius: 8, fontSize: 16, color: '#2C2C2C', background: '#f9f9f9', fontFamily: 'inherit', outline: 'none' }
+const fieldLabelSm = { fontSize: 13, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 4 }
+const typeBtn     = { flex: 1, padding: '7px 0', fontSize: 16, fontWeight: 600, border: 'none', background: '#f5f5f5', color: '#888', borderRadius: 8, cursor: 'pointer', fontFamily: 'inherit' }
 const typeBtnActive = { background: '#2C2C2C', color: '#fff' }
-const addTimeBtn  = { fontSize: 13, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 7, padding: '7px 10px', cursor: 'pointer', fontFamily: 'inherit', width: '100%', textAlign: 'left' }
-const clearBtn    = { marginTop: 4, fontSize: 12, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }
+const addTimeBtn  = { fontSize: 15, color: '#888', background: '#f5f5f5', border: '1px dashed #ddd', borderRadius: 7, padding: '7px 10px', cursor: 'pointer', fontFamily: 'inherit', width: '100%', textAlign: 'left' }
+const clearBtn    = { marginTop: 4, fontSize: 14, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }
 const saveBtn     = { padding: '9px 24px', background: '#2C2C2C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }
 const cancelBtn   = { padding: '9px 16px', background: '#f5f5f5', color: '#888', border: 'none', borderRadius: 8, fontSize: 16, cursor: 'pointer', fontFamily: 'inherit' }
