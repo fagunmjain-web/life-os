@@ -368,53 +368,64 @@ export default function App() {
     navigate, activeView, setActiveView, getEventTypeStyle, moveTask, assignTask, moveEvent, createEventFromTask, updateTaskSection,
   }
 
-  const VIEWS = ['Today', 'Day', 'Week', 'Month', 'Year']
+  const VIEWS = ['Day', 'Week', 'Month', 'Year']
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#faf8f4', overflowX: 'hidden', maxWidth: '100vw' }}>
 
-      {/* STICKY HEADER — full viewport width, never moves when sidebar toggles */}
+      {/* STICKY HEADER */}
       <div style={{ position: 'sticky', top: 0, zIndex: 100, background: '#faf8f4', padding: '8px 16px', borderBottom: '1px solid #ede8e0' }}>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: 38 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 38 }}>
 
-          {/* Far left: hamburger */}
+          {/* Hamburger */}
           <button
             onClick={() => setSidebarOpen(o => !o)}
-            style={{ background: 'none', border: 'none', outline: 'none', boxShadow: 'none', cursor: 'pointer', fontSize: 18, color: '#555', padding: '2px 8px 2px 0', lineHeight: 1, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}
+            style={{ background: 'none', border: 'none', outline: 'none', boxShadow: 'none', cursor: 'pointer', fontSize: 18, color: '#555', padding: '2px 6px 2px 0', lineHeight: 1, flexShrink: 0, WebkitTapHighlightColor: 'transparent' }}
           >☰</button>
 
-          {/* Left side: plain text nav links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, zIndex: 1 }}>
-            {VIEWS.map(v => {
-              const isActive = v !== 'Today' && activeView === v
-              return (
-                <span key={v}
-                  onClick={() => { if (v === 'Today') { setCurrentDate(new Date()); setActiveView('Day') } else setActiveView(v) }}
-                  style={{ fontSize: 15, fontWeight: isActive ? 700 : 400, color: isActive ? '#2C2C2C' : '#aaa', cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none' }}
-                >{v}</span>
-              )
-            })}
+          {/* Today pill */}
+          <button
+            onClick={() => { setCurrentDate(new Date()); setActiveView('Day') }}
+            style={{ fontSize: 13, fontWeight: 700, background: '#c4b8a8', color: '#3a3028', border: 'none', borderRadius: 8, padding: '5px 11px', cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap', lineHeight: 1, flexShrink: 0 }}
+          >Today</button>
+
+          {/* Segment control */}
+          <div style={{ display: 'flex', background: '#ece8e0', borderRadius: 9, padding: 3, gap: isMobile ? 1 : 2, flexShrink: 0 }}>
+            {VIEWS.map(v => (
+              <button key={v} onClick={() => setActiveView(v)} style={{
+                fontSize: isMobile ? 11 : 13, fontWeight: 600,
+                padding: isMobile ? '4px 7px' : '4px 10px', borderRadius: 7,
+                border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                background: activeView === v ? '#fff' : 'transparent',
+                color: activeView === v ? '#2C2C2C' : '#888',
+                boxShadow: activeView === v ? '0 1px 4px rgba(0,0,0,.12)' : 'none',
+                transition: 'all .15s', whiteSpace: 'nowrap',
+              }}>{isMobile ? v[0] : v}</button>
+            ))}
           </div>
 
-          {/* Centre: ‹ date range › — absolutely centred in the full header */}
-          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 4, pointerEvents: 'auto' }}>
-            <button onClick={() => navigate(-1)} style={navArrowBtn}>‹</button>
-            <div style={{ fontSize: 17, fontWeight: 600, color: '#2C2C2C', minWidth: 90, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
-            <button onClick={() => navigate(1)}  style={navArrowBtn}>›</button>
-          </div>
+          {/* Date navigator — hidden on mobile (use swipe instead) */}
+          {!isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+              <button onClick={() => navigate(-1)} style={navArrowBtn}>‹</button>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#2C2C2C', minWidth: 90, textAlign: 'center', whiteSpace: 'nowrap' }}>{getHeaderTitle()}</div>
+              <button onClick={() => navigate(1)} style={navArrowBtn}>›</button>
+            </div>
+          )}
 
-          {/* Far right: weight widget / year quick-add */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, zIndex: 1 }}>
-            {showWeight && (
-              <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
-            )}
-            {activeView === 'Year' && !showWeight && (
-              <>
-                <button onClick={() => setTaskModal({ defaultSection: null, defaultDate: toDateStr(new Date()) })} style={yearBtn}>+ Task</button>
-                <button onClick={() => setEventModal({ date: new Date() })} style={yearBtn}>+ Event</button>
-              </>
-            )}
-          </div>
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Right: weight widget OR quick-add button */}
+          {showWeight && (
+            <WeightInline target={weightTarget} entry={weightEntry} dateStr={dateStr} saveWeight={saveWeight} />
+          )}
+          {!showWeight && (
+            <button
+              onClick={() => setTaskModal({ defaultSection: null, defaultDate: toDateStr(new Date()) })}
+              style={{ fontSize: 22, fontWeight: 300, lineHeight: '28px', color: '#fff', background: '#2C2C2C', border: 'none', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit', flexShrink: 0 }}
+            >+</button>
+          )}
 
         </div>
       </div>

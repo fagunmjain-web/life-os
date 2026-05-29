@@ -55,16 +55,20 @@ const ET_PRESET_COLORS = [
   { color: '#C01818', bg: '#FEE8E8', textColor: '#5C0808' },
 ]
 
-function Panel({ title, open, onToggle, children }) {
+function Panel({ icon, title, badge, open, onToggle, children }) {
   return (
     <div style={{ borderBottom: '1px solid #f0ece6' }}>
       <div
         onClick={onToggle}
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', cursor: 'pointer', userSelect: 'none' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', cursor: 'pointer', userSelect: 'none' }}
       >
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em' }}>{title}</span>
+        {icon && <span style={{ fontSize: 14, lineHeight: 1, flexShrink: 0 }}>{icon}</span>}
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em', flex: 1 }}>{title}</span>
+        {badge != null && badge > 0 && (
+          <span style={{ fontSize: 11, background: '#ede8e0', color: '#888', borderRadius: 10, padding: '1px 7px', fontWeight: 600, flexShrink: 0 }}>{badge}</span>
+        )}
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="#bbb" strokeWidth="1.8"
-          style={{ flexShrink: 0, transition: 'transform .2s', transform: open ? 'rotate(-90deg)' : 'rotate(90deg)' }}>
+          style={{ flexShrink: 0, transition: 'transform .2s', transform: open ? 'rotate(-90deg)' : 'rotate(90deg)', marginLeft: 4 }}>
           <path d="M3 2L7 5L3 8" />
         </svg>
       </div>
@@ -348,8 +352,16 @@ export default function Sidebar({
       <div style={outerStyle}>
         <div style={{ width: sidebarWidth, height: '100%', overflowY: 'auto', overflowX: 'hidden', scrollbarWidth: 'none' }}>
 
+          {/* ── SIDEBAR TITLE ─────────────────────────────────────────────── */}
+          <div style={{ padding: '14px 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #ede8e0' }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2C', letterSpacing: '-.01em' }}>Life OS</span>
+            {isMobile && (
+              <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 18, color: '#bbb', cursor: 'pointer', padding: 0, lineHeight: 1 }}>✕</button>
+            )}
+          </div>
+
           {/* ── TO DO ─────────────────────────────────────────────────────── */}
-          <Panel title="To Do" open={panelOpen.todo} onToggle={() => toggle('todo')}>
+          <Panel icon="📋" title="To Do" badge={unassigned.length} open={panelOpen.todo} onToggle={() => toggle('todo')}>
             <div
               style={{ padding: '0 14px 12px', background: todoDropOver ? '#f5f9f0' : 'transparent', transition: 'background .1s' }}
               onDragOver={e => { e.preventDefault(); setTodoDropOver(true) }}
@@ -376,6 +388,8 @@ export default function Sidebar({
                   onMouseLeave={() => { setHoveredTodo(null) }}
                   style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0', cursor: 'grab', borderBottom: '1px solid #f5f2ee' }}
                 >
+                  {/* Section colour swatch */}
+                  <div style={{ width: 3, alignSelf: 'stretch', minHeight: 20, borderRadius: 2, background: getSectionColor(task.section), flexShrink: 0, marginTop: 1 }} />
                   {/* Checkbox — click marks done (deletes) */}
                   <div
                     onClick={() => setDeleteConfirm({ type: 'task', id: task.id, name: task.title })}
@@ -433,7 +447,7 @@ export default function Sidebar({
               onClick={() => toggle('habits')}
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', cursor: 'pointer', userSelect: 'none' }}
             >
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em' }}>Habit Tracker</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '.07em', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ fontSize: 14 }}>🔁</span> Habits</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }} onClick={e => e.stopPropagation()}>
                 {panelOpen.habits && ['week', 'month', 'year'].map(v => (
                   <button key={v}
@@ -653,7 +667,7 @@ export default function Sidebar({
           </div>
 
           {/* ── TASK SECTIONS ─────────────────────────────────────────────── */}
-          <Panel title="Task Sections" open={panelOpen.taskSections} onToggle={() => toggle('taskSections')}>
+          <Panel icon="🏷" title="Sections" open={panelOpen.taskSections} onToggle={() => toggle('taskSections')}>
             <div style={{ padding: '0 14px 12px' }}>
               {sections.map((s, idx) => (
                 <div key={s.key}>
@@ -726,7 +740,7 @@ export default function Sidebar({
           </Panel>
 
           {/* ── EVENT TYPES ───────────────────────────────────────────────── */}
-          <Panel title="Event Types" open={panelOpen.eventTypes} onToggle={() => toggle('eventTypes')}>
+          <Panel icon="📅" title="Event Types" open={panelOpen.eventTypes} onToggle={() => toggle('eventTypes')}>
             <div style={{ padding: '0 14px 12px' }}>
               {eventTypes.map(et => (
                 <div key={et.key}>
@@ -786,7 +800,7 @@ export default function Sidebar({
           </Panel>
 
           {/* ── NOTES ─────────────────────────────────────────────────────── */}
-          <Panel title="Notes" open={panelOpen.notes} onToggle={() => toggle('notes')}>
+          <Panel icon="📝" title="Notes" open={panelOpen.notes} onToggle={() => toggle('notes')}>
             <div style={{ padding: '0 14px 12px' }}>
               {notes.map(n => (
                 <div key={n.id}
